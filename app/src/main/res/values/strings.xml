@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">Pomodoro</string>
+    <string name="title_activity_tarefa">TarefaActivity</string>
+    <string name="titulo_task">Título</string>
+    <string name="desc_task">Descrição</string>
+    <string name="nr_pomodoro">Número de Pomodoros</string>
+    <string name="btn_salvar">Salvar</string>
+
+</resources>

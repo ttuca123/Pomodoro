@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:paddingBottom="@dimen/activity_vertical_margin"
+    android:paddingLeft="@dimen/activity_horizontal_margin"
+    android:paddingRight="@dimen/activity_horizontal_margin"
+    android:paddingTop="@dimen/activity_vertical_margin"
+    tools:context="br.edu.fa7.pomodoro.MainActivity">
+
+
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:text="25:00"
+            android:id="@+id/cronometro"
+            android:layout_gravity="center_horizontal"
+            android:layout_weight="0.32"
+            android:textAlignment="center"
+            android:textSize="70dp"
+            android:textColor="#c72828"
+            android:textColorHighlight="#d86f6f"
+            android:textColorHint="#8d2d2d" />
+
+        <android.support.v7.widget.RecyclerView
+            android:layout_width="match_parent"
+            android:layout_height="276dp"
+            android:id="@+id/mainReclyclerView"
+            android:scrollbars="vertical"
+            android:layout_weight="0.83"
+            android:layout_above="@+id/btnTask"
+            android:layout_below="@+id/cronometro" />
+
+        <Button
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Adicionar Tarefa"
+            android:id="@+id/btnTask"
+            android:layout_gravity="bottom"
+            android:layout_alignParentBottom="true"
+            android:layout_alignParentLeft="true"
+            android:layout_alignParentStart="true" />
+
+
+
+
+</RelativeLayout>
+

@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:orientation="vertical" android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:weightSum="1">
+
+
+    <TableLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:id="@+id/tbl"
+        android:stretchColumns="0,1,2"
+        android:layout_marginTop="100dp"
+        android:elevation="5dp">
+
+
+    <TableRow>
+    <EditText
+                style="@style/TextAppearance.AppCompat.Widget.ActionMode.Title"
+                android:id="@+id/titulo"
+                android:textStyle="bold"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:hint="@string/titulo_task"
+                android:inputType="text"
+                android:maxLines="1"
+        android:layout_gravity="bottom"
+                android:singleLine="true"
+        />
+
+    </TableRow>
+        <TableRow>
+
+            <EditText
+                style="@style/TextAppearance.AppCompat.Widget.ActionMode.Subtitle"
+                android:id="@+id/descricao"
+                android:textStyle="bold"
+                android:layout_width="220dp"
+                android:layout_height="wrap_content"
+                android:hint="@string/desc_task"
+                android:inputType="text"
+                android:maxLines="1"
+                android:singleLine="true"
+                android:layout_gravity="bottom" />
+
+        </TableRow>
+        <TableRow>
+            <EditText
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:textStyle="bold"
+                        android:inputType="number"
+                        android:ems="10"
+                        android:id="@+id/nrPomodoro"
+                        android:hint="@string/nr_pomodoro"
+                android:layout_gravity="bottom"
+                         />
+        </TableRow>
+        <TableRow><Button
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="@string/btn_salvar"
+            android:id="@+id/btnTask"
+            />
+            </TableRow>
+</TableLayout>
+
+
+
+</LinearLayout>
