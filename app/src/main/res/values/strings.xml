@@ -5,5 +5,9 @@
     <string name="desc_task">Descrição</string>
     <string name="nr_pomodoro">Número de Pomodoros</string>
     <string name="btn_salvar">Salvar</string>
+    <string name="task_alocade">Pomodoro Started</string>
+    <string name="service_started">Serviço Iniciado</string>
+
+
 
 </resources>

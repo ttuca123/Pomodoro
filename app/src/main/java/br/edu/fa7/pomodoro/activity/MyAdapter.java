@@ -1,28 +1,24 @@
-package br.edu.fa7.pomodoro.util;
+package br.edu.fa7.pomodoro.activity;
 
 import android.content.Context;
 import android.content.Intent;
-import android.os.CountDownTimer;
 import android.support.v7.widget.RecyclerView;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
-import android.widget.Chronometer;
 import android.widget.ImageView;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import java.util.List;
 
-import br.edu.fa7.pomodoro.MainActivity;
 import br.edu.fa7.pomodoro.R;
 import br.edu.fa7.pomodoro.entity.Tarefa;
 import br.edu.fa7.pomodoro.service.TarefaService;
 
+
 /**
- * Created by tuca on 21/05/16.
+ * Criado por Artur Cavalcante 29/50/2016
  */
 public class MyAdapter extends RecyclerView.Adapter<MyAdapter.MyViewHolder> {
 
@@ -30,11 +26,7 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.MyViewHolder> {
     private LayoutInflater mLayoutInflater;
 
 
-    public MyAdapter(Context context, List<Tarefa> tarefas)
-    {
-        this.tarefas = tarefas;
-        this.mLayoutInflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-    }
+    private boolean mCounterStarted;
 
     @Override
     public MyViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
@@ -42,9 +34,17 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.MyViewHolder> {
         View view = mLayoutInflater.inflate(R.layout.item_layout, parent, false);
         MyViewHolder mViewHolder = new MyViewHolder(view);
 
+        mCounterStarted = false;
 
         return mViewHolder;
     }
+
+    public MyAdapter(Context context, List<Tarefa> tarefas)
+    {
+        this.tarefas = tarefas;
+        this.mLayoutInflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
+    }
+
 
     @Override
     public void onBindViewHolder(MyViewHolder holder, int position) {
@@ -53,16 +53,12 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.MyViewHolder> {
         holder.titulo.setText(tarefa.getTitulo());
         holder.descricao.setText(tarefa.getDescricao());
         holder.pomodoro.setText(tarefa.getPomodoro().toString());
-
     }
 
     @Override
     public int getItemCount() {
         return tarefas.size();
-
-
     }
-
 
     public  class MyViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener
     {
@@ -90,39 +86,29 @@ public class MyAdapter extends RecyclerView.Adapter<MyAdapter.MyViewHolder> {
 
         @Override
         public void onClick(View view) {
+
+            Context contexto = view.getContext();
             switch (view.getId())
             {
                 case R.id.start:
 
-
-                    view.getContext().startService( new Intent(view.getContext(), TarefaService.class));
-
-
-
+                    contexto.startService( new Intent(contexto, TarefaService.class));
 
                     break;
                 case R.id.stop:
 
-                    view.getContext().stopService( new Intent(view.getContext(), TarefaService.class));
+                    contexto.stopService( new Intent(contexto, TarefaService.class));
 
                     break;
 
-
-
             }
         }
-
-
-
-
     }
 
 
 
 
+
+
+
 }
-
-
-
-
-

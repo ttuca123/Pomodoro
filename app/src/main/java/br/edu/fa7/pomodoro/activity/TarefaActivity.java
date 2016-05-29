@@ -1,4 +1,4 @@
-package br.edu.fa7.pomodoro;
+package br.edu.fa7.pomodoro.activity;
 
 import android.app.Activity;
 import android.content.Intent;
@@ -6,6 +6,9 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
+
+import br.edu.fa7.pomodoro.R;
+import br.edu.fa7.pomodoro.activity.MainActivity;
 
 public class TarefaActivity extends Activity implements View.OnClickListener {
 
