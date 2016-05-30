@@ -166,6 +166,7 @@ public class TarefaService extends Service {
     public void onDestroy() {
         super.onDestroy();
         timer.cancel();
+        counter=5;
 
         Log.i("MyService", "Service Stopped.");
         isRunning = false;

@@ -13,6 +13,9 @@ public class Tarefa {
 
     private String descricao;
 
+    public Tarefa(){
+
+    }
 
     public Tarefa( String titulo, String descricao, int pomodoro, int imagem) {
         this.imagem = imagem;

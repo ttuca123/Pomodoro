@@ -5,12 +5,15 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.ServiceConnection;
+import android.database.Cursor;
+import android.database.sqlite.SQLiteDatabase;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Message;
 import android.os.Bundle;
 import android.os.Messenger;
 import android.os.Parcelable;
+import android.os.PersistableBundle;
 import android.os.RemoteException;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -20,8 +23,10 @@ import android.widget.TextView;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 
 import br.edu.fa7.pomodoro.R;
+import br.edu.fa7.pomodoro.connection.DataBaseHelper;
 import br.edu.fa7.pomodoro.entity.Tarefa;
 
 import br.edu.fa7.pomodoro.service.TarefaService;
@@ -34,17 +39,20 @@ import br.edu.fa7.pomodoro.service.TarefaService;
 public class MainActivity extends Activity implements View.OnClickListener
 {
 
+
+
     private static final short NEW_ACTIVITY_ID=1;
 
     private RecyclerView recyclerView;
     private RecyclerView.Adapter mAdapter;
     private RecyclerView.LayoutManager mLayoutManager;
     private Button btnTask;
-    private List<Tarefa> tarefas;
+
     public TextView cronometro;
     private Messenger mensegerService;
 
-    boolean mIsBound;
+    private boolean mIsBound;
+
 
 
     @Override
@@ -54,6 +62,7 @@ public class MainActivity extends Activity implements View.OnClickListener
         setContentView(R.layout.activity_main);
 
         getInstancy();
+
         restoreMe(savedInstanceState);
 
         btnTask.setOnClickListener(this);
@@ -61,7 +70,7 @@ public class MainActivity extends Activity implements View.OnClickListener
         mLayoutManager = new LinearLayoutManager(this);
 
         recyclerView.setLayoutManager(mLayoutManager);
-        mAdapter =  new MyAdapter(this, tarefas);
+        mAdapter =  new MyAdapter(this);
 
         mLayoutManager = new LinearLayoutManager(this);
         recyclerView.setLayoutManager(mLayoutManager);
@@ -88,9 +97,7 @@ public class MainActivity extends Activity implements View.OnClickListener
 
         cronometro = (TextView) findViewById(R.id.cronometro);
 
-        if(tarefas==null){
-            tarefas = new ArrayList<>();
-        }
+
 
     }
 
@@ -112,10 +119,17 @@ public class MainActivity extends Activity implements View.OnClickListener
             case NEW_ACTIVITY_ID:
                 if(resultCode == RESULT_OK)
                 {
-                    String titulo = data.getStringExtra("titulo");
-                    String descricao = data.getStringExtra("descricao");
-                    String nrPomodoro = data.getStringExtra("nrPomodoro");
-                    tarefas.add(new Tarefa(titulo, descricao, Integer.parseInt(nrPomodoro), R.drawable.evolution_tasks));
+
+                    mAdapter =  new MyAdapter(this);
+
+                    mLayoutManager = new LinearLayoutManager(this);
+                    recyclerView.setLayoutManager(mLayoutManager);
+                    recyclerView.setAdapter(mAdapter);
+
+//                    String titulo = data.getStringExtra("titulo");
+//                    String descricao = data.getStringExtra("descricao");
+//                    String nrPomodoro = data.getStringExtra("nrPomodoro");
+//                    tarefas.add(new Tarefa(titulo, descricao, Integer.parseInt(nrPomodoro), R.drawable.evolution_tasks));
                 }
                 default:
 
