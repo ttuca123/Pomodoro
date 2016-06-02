@@ -228,7 +228,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
             bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
             mIsBound = false;
         }
-//            cronometro.setText("Binding.");
+
     }
 
 
