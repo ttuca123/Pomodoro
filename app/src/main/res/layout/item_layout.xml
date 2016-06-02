@@ -25,6 +25,21 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:id="@+id/_id"
+            android:textSize="25sp"
+            android:visibility="gone"
+            android:layout_alignParentTop="true"
+            android:layout_alignTop="@+id/tarefa"
+            android:layout_toRightOf="@+id/descricao"
+            android:layout_alignRight="@+id/tarefa"
+            android:layout_alignEnd="@+id/tarefa" />
+
+
+
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
             android:hint="Tarefa"
             android:id="@+id/tarefa"
             android:textSize="25sp"

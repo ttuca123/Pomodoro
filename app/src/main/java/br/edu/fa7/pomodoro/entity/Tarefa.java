@@ -5,6 +5,9 @@ package br.edu.fa7.pomodoro.entity;
  */
 public class Tarefa {
 
+
+    private int id;
+
     private Integer pomodoro;
 
     private int imagem;
@@ -17,12 +20,18 @@ public class Tarefa {
 
     }
 
-    public Tarefa( String titulo, String descricao, int pomodoro, int imagem) {
+    public Tarefa(int id, String titulo, String descricao, int pomodoro, int imagem) {
+      this.id = id;
         this.imagem = imagem;
         this.pomodoro = pomodoro;
         this.titulo = titulo;
         this.descricao = descricao;
     }
+
+    public int getId() {
+        return id;
+    }
+
 
     public String getTitulo() {
         return titulo;

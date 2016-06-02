@@ -45,6 +45,8 @@ public class TarefaService extends Service {
 
     public Toast toast;
 
+    private final String MSG_TAREFA_INCIADA = "Tarefa iniciada com sucesso!!!";
+
 
     @Override
     public IBinder onBind(Intent intent) {
@@ -52,12 +54,11 @@ public class TarefaService extends Service {
     }
 
 
-
     private final IBinder mBinder = new LocalBinder();
     final Messenger mMessenger = new Messenger(new IncomingHandler());
 
 
-   private class IncomingHandler extends Handler {
+    private class IncomingHandler extends Handler {
         @Override
         public void handleMessage(Message msg) {
             switch (msg.what) {
@@ -76,21 +77,9 @@ public class TarefaService extends Service {
         }
     }
 
+
     @Override
-    public void onCreate() {
-        super.onCreate();
-        Log.i("MyService", "Service Started.");
-
-        Bundle b = new Bundle();
-        b.putString("param_cron", Math.random()+ "duadiaud");
-        Message msg = Message.obtain(null, MSG_SET_STRING_VALUE);
-        msg.setData(b);
-        try {
-            mClients.get(0).send(msg);
-        } catch (RemoteException e) {
-            e.printStackTrace();
-        }
-
+    public int onStartCommand(Intent intent, int flags, int startId) {
 
         timer = new Timer();
 
@@ -103,33 +92,30 @@ public class TarefaService extends Service {
         isRunning = true;
 
         toast = Toast.makeText(this,
-                "Tarefa iniciada com sucesso!!!",
+                MSG_TAREFA_INCIADA,
                 Toast.LENGTH_SHORT);
         toast.show();
 
-        mostrarNotificacao();
 
 
-    }
+        Bundle extras = intent.getExtras();
 
-    @Override
-    public int onStartCommand(Intent intent, int flags, int startId) {
+        Intent it = new Intent("TAREFA_ALARM");
+        it.putExtras(extras);
 
-        Log.i("MyService", "Received start id " + startId + ": " + intent);
-
-
+        mostrarNotificacao(it);
 
 
-        return Service.START_NOT_STICKY;
+        Log.i("MyService", "Received start mId " + startId + ": " + intent);
+
+
+        return Service.START_STICKY;
     }
 
 
     public static boolean isRunning() {
         return isRunning;
     }
-
-
-
 
 
     public class LocalBinder extends Binder {
@@ -144,7 +130,7 @@ public class TarefaService extends Service {
         if (intvaluetosend <= 0) {
             timer.cancel();
             counter = 5;
-        }else {
+        } else {
 
             for (int i = mClients.size() - 1; i >= 0; i--) {
 
@@ -162,7 +148,7 @@ public class TarefaService extends Service {
                         // The client is dead. Remove it from the list; we are going through the list from back to front so this is safe to do inside the loop.
                         mClients.remove(i);
                     }
-                }else{
+                } else {
                     Log.i("TimerTick", " Nenhum cliente");
                 }
             }
@@ -170,16 +156,16 @@ public class TarefaService extends Service {
     }
 
 
-    private void mostrarNotificacao() {
+    private void mostrarNotificacao(Intent it) {
 
-        Intent it = new Intent("TAREFA_ALARM");
-         pendingIntent = PendingIntent.getBroadcast(TarefaService.this, 1, it, PendingIntent.FLAG_UPDATE_CURRENT);
+
+        pendingIntent = PendingIntent.getBroadcast(TarefaService.this, 1, it, PendingIntent.FLAG_UPDATE_CURRENT);
 
         Calendar cal = Calendar.getInstance();
         cal.setTimeInMillis(System.currentTimeMillis());
         cal.add(Calendar.SECOND, counter);
 
-         alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
+        alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
         alarmManager.set(AlarmManager.RTC_WAKEUP, cal.getTimeInMillis(), pendingIntent);
 
     }
@@ -189,8 +175,6 @@ public class TarefaService extends Service {
 
         try {
             counter -= incrementBy;
-
-
 
 
             sendMessageToUI(counter);
@@ -205,7 +189,7 @@ public class TarefaService extends Service {
         super.onDestroy();
         timer.cancel();
         alarmManager.cancel(pendingIntent);
-        counter=5;
+        counter = 5;
 
         Log.i("MyService", "Service Stopped.");
         isRunning = false;
