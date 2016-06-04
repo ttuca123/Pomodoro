@@ -23,8 +23,13 @@ public class TarefaActivity extends Activity implements View.OnClickListener {
     TextView titulo;
     TextView descricao;
     TextView nrPomodoro;
-
     private DataBaseHelper helper;
+
+    private static final String TITULO_REQUIRED = "Favor preencher titulo da tarefa";
+    private static final String SUBTITULO_REQUIRED = "Favor preencher descrição da tarefa";
+    private static final String POMODORO_REQUIRED = "Favor preencher número de pomodoros da tarefa";
+    private static final String REG_SALVO = "Registro Salvo";
+    private static final String ERRO_SALVAR = "Ocorreu um erro ao salvar no banco";
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -64,19 +69,19 @@ public class TarefaActivity extends Activity implements View.OnClickListener {
         if (titulo.getText().toString().isEmpty()) {
 
             titulo.requestFocus();
-            titulo.setError("Favor preencher titulo da tarefa");
+            titulo.setError(TITULO_REQUIRED);
             condicao = false;
         }
         if (descricao.getText().toString().isEmpty()) {
 
             descricao.requestFocus();
-            descricao.setError("Favor preencher descrição da tarefa");
+            descricao.setError(SUBTITULO_REQUIRED);
             condicao = false;
         }
         if (nrPomodoro.getText().toString().isEmpty() || nrPomodoro.getText().toString().equals("0")) {
 
             nrPomodoro.requestFocus();
-            nrPomodoro.setError("Favor preencher número de pomodoros da tarefa");
+            nrPomodoro.setError(POMODORO_REQUIRED);
             condicao = false;
         }
         return condicao;
@@ -100,10 +105,10 @@ public class TarefaActivity extends Activity implements View.OnClickListener {
 
 
         if ((resultado) != -1) {
-            Toast.makeText(this, "Registro Salvo", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, REG_SALVO, Toast.LENGTH_SHORT).show();
         } else {
 
-            Toast.makeText(this, "Ocorreu um erro ao salvar no banco", Toast.LENGTH_SHORT).show();
+            Toast.makeText(this, ERRO_SALVAR, Toast.LENGTH_SHORT).show();
         }
     }
 

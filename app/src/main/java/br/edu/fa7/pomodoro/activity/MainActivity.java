@@ -61,8 +61,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
     private boolean mIsBound;
     Intent intent;
     private Timer timer;
-    int counter = 5;
-    int incrementBy = 1;
+
     private TarefaDAO tarefaDAO;
     private List<Tarefa> tarefas;
 
@@ -91,6 +90,12 @@ public class MainActivity extends Activity implements View.OnClickListener {
     }
 
     @Override
+    protected void onNewIntent(Intent intent) {
+        super.onNewIntent(intent);
+        readMessage();
+    }
+
+    @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
 
@@ -102,6 +107,11 @@ public class MainActivity extends Activity implements View.OnClickListener {
 
         btnTask.setOnClickListener(this);
 
+        intent = new Intent(this, TarefaService.class);
+
+        tarefaDAO = new TarefaDAO(getBaseContext());
+
+        readMessage();
 
         mLayoutManager = new LinearLayoutManager(this);
 
@@ -113,10 +123,6 @@ public class MainActivity extends Activity implements View.OnClickListener {
         recyclerView.setLayoutManager(mLayoutManager);
 
 
-        intent = new Intent(this, TarefaService.class);
-        tarefaDAO = new TarefaDAO(getBaseContext());
-
-        readMessage();
     }
 
 
@@ -183,6 +189,8 @@ public class MainActivity extends Activity implements View.OnClickListener {
     private void onTimerTick() {
 
         try {
+            int counter = 5;
+            int incrementBy = 1;
 
             counter -= incrementBy;
 
@@ -199,7 +207,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
 
         if (intvaluetosend <= 0) {
             timer.cancel();
-            counter = 5;
+
         } else {
 
             cronometro.setText(intvaluetosend + "");
@@ -309,24 +317,33 @@ public class MainActivity extends Activity implements View.OnClickListener {
 
     public void readMessage() {
 
+        String id = getIntent().getStringExtra("_id");
 
-        String id = intent.getStringExtra("_id");
         if (id != null) {
+
             StringBuilder msgs = new StringBuilder();
             msgs.append("Tarefa: ");
             msgs.append(id);
             msgs.append(", Título: ");
-            msgs.append(intent.getStringExtra("nome"));
+            msgs.append(getIntent().getStringExtra("nome"));
             msgs.append(" finalizada com sucesso.");
 
 
-            for (Tarefa tarefa : tarefas) {
+            for (Tarefa tarefa : tarefaDAO.getTarefas()) {
                 if (tarefa.getId() == Integer.parseInt(id)) {
                     int status = EnuStatus.CONCLUIDO.getId();
+                    if (tarefa.getPomodoro() > 1) {
+                        tarefaDAO.update(id, tarefa.getPomodoro()-1, status);
 
-                    tarefaDAO.update(id, tarefa.getPomodoro(), status);
-                    tarefa = null;
-                    Toast.makeText(getApplicationContext(), msgs.toString(), Toast.LENGTH_LONG).show();
+                        Toast.makeText(getApplicationContext(), msgs.toString(), Toast.LENGTH_LONG).show();
+
+                    } else {
+
+                        tarefaDAO.delete(id);
+                        tarefa = null;
+                        Toast.makeText(getApplicationContext(), msgs.toString(), Toast.LENGTH_LONG).show();
+                    }
+
                     break;
                 }
 
@@ -375,7 +392,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
         }
 
 
-        private void update(String id, int status) {
+        public void update(String id, int status) {
 
 
             Toast toast;
@@ -565,7 +582,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
 //                    doUnbindService();
                         stopService(intent);
 
-                        if (nrPomodoro < 1) {
+                        if (nrPomodoro <= 1) {
 
                             remover(id);
 

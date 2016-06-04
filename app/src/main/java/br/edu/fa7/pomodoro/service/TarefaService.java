@@ -158,6 +158,7 @@ public class TarefaService extends Service {
 
         pendingIntent = PendingIntent.getBroadcast(TarefaService.this, 0, it, PendingIntent.FLAG_UPDATE_CURRENT);
 
+
         Calendar cal = Calendar.getInstance();
         cal.setTimeInMillis(System.currentTimeMillis());
         cal.add(Calendar.SECOND, counter);

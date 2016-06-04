@@ -8,6 +8,7 @@ import android.app.TaskStackBuilder;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Color;
 import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Build;
@@ -51,9 +52,13 @@ public class MyBroadcastReceiver extends BroadcastReceiver {
 
 
 
-            Notification.Builder builder = new Notification.Builder(context).setSmallIcon(R.drawable.notification_template_icon_bg)
+            NotificationCompat.Builder builder = new NotificationCompat.Builder(context).setSmallIcon(R.drawable.notification_template_icon_bg)
                     .setContentTitle(TITLE_NOTIFICACAO).setContentText(descNotificacao.toString())
-                    .setAutoCancel(true).setTicker("Nova Mensagem!").setSound(alarmSound);;
+                    .setAutoCancel(true).setTicker("Nova Mensagem!").setSound(alarmSound);
+
+            builder.setLights(100, 50, 70);
+
+
 
             Intent it = new Intent(context, MainActivity.class);
 
@@ -68,6 +73,8 @@ public class MyBroadcastReceiver extends BroadcastReceiver {
             PendingIntent pendingIntent = stackBuilder.getPendingIntent(NOTIFICATION_PENDING_INTENT, PendingIntent.FLAG_UPDATE_CURRENT);
 
             builder.setContentIntent(pendingIntent);
+
+            builder.setFullScreenIntent(pendingIntent, false);
 
             NotificationManager notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
             notificationManager.notify(NOTIFICATION_SERVICE, builder.build());
