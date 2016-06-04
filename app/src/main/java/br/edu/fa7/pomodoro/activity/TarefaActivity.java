@@ -5,11 +5,13 @@ import android.content.ContentValues;
 import android.content.Intent;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
+import android.sax.StartElementListener;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import br.edu.fa7.pomodoro.EnuStatus;
 import br.edu.fa7.pomodoro.R;
 import br.edu.fa7.pomodoro.activity.MainActivity;
 import br.edu.fa7.pomodoro.connection.DataBaseHelper;
@@ -44,7 +46,7 @@ public class TarefaActivity extends Activity implements View.OnClickListener {
             tarefa.setTitulo(titulo.getText().toString());
             tarefa.setDescricao(descricao.getText().toString());
             tarefa.setPomodoro(Integer.parseInt(nrPomodoro.getText().toString()));
-
+            tarefa.setStatus(EnuStatus.NAO_INICIADO.getId());
 
             Intent it = new Intent(this, MainActivity.class);
 
@@ -87,10 +89,11 @@ public class TarefaActivity extends Activity implements View.OnClickListener {
         SQLiteDatabase db = helper.getWritableDatabase();
         ContentValues valores = new ContentValues();
 
-        valores.put("titulo", tarefa.getTitulo());
-        valores.put("descricao", tarefa.getDescricao());
+        valores.put("mTitulo", tarefa.getTitulo());
+        valores.put("mDescricao", tarefa.getDescricao());
         valores.put("qtd_pomodoro", tarefa.getPomodoro());
         valores.put("nr_Imagem", tarefa.getImagem());
+        valores.put("sta_status", tarefa.getStatus());
 
 
         resultado = db.insert("tarefa", null, valores);

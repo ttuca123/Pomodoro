@@ -10,6 +10,10 @@ public class Tarefa {
 
     private Integer pomodoro;
 
+
+
+    private Integer status;
+
     private int imagem;
 
     private String titulo;
@@ -20,12 +24,13 @@ public class Tarefa {
 
     }
 
-    public Tarefa(int id, String titulo, String descricao, int pomodoro, int imagem) {
+    public Tarefa(int id, String titulo, String descricao, int pomodoro, int imagem, int status) {
       this.id = id;
         this.imagem = imagem;
         this.pomodoro = pomodoro;
         this.titulo = titulo;
         this.descricao = descricao;
+        this.status = status;
     }
 
     public int getId() {
@@ -65,5 +70,19 @@ public class Tarefa {
 
     public void setImagem(int imagem) {
         this.imagem = imagem;
+    }
+
+    public Integer getStatus() {
+
+        if(status==null){
+
+            status=0;
+        }
+
+        return status;
+    }
+
+    public void setStatus(Integer status) {
+        this.status = status;
     }
 }

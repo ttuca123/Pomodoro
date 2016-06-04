@@ -17,7 +17,6 @@ import android.widget.Toast;
 
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Random;
 import java.util.Timer;
 import java.util.TimerTask;
 
@@ -45,7 +44,7 @@ public class TarefaService extends Service {
 
     public Toast toast;
 
-    private final String MSG_TAREFA_INCIADA = "Tarefa iniciada com sucesso!!!";
+    private final String MSG_TAREFA_INICIADA = "Tarefa iniciada, id=";
 
 
     @Override
@@ -91,19 +90,17 @@ public class TarefaService extends Service {
 
         isRunning = true;
 
-        toast = Toast.makeText(this,
-                MSG_TAREFA_INCIADA,
-                Toast.LENGTH_SHORT);
-        toast.show();
-
-
-
         Bundle extras = intent.getExtras();
 
         Intent it = new Intent("TAREFA_ALARM");
         it.putExtras(extras);
 
         mostrarNotificacao(it);
+
+        toast = Toast.makeText(this,
+                MSG_TAREFA_INICIADA +it.getStringExtra("_id"),
+                Toast.LENGTH_SHORT);
+        toast.show();
 
 
         Log.i("MyService", "Received start mId " + startId + ": " + intent);
@@ -159,7 +156,7 @@ public class TarefaService extends Service {
     private void mostrarNotificacao(Intent it) {
 
 
-        pendingIntent = PendingIntent.getBroadcast(TarefaService.this, 1, it, PendingIntent.FLAG_UPDATE_CURRENT);
+        pendingIntent = PendingIntent.getBroadcast(TarefaService.this, 0, it, PendingIntent.FLAG_UPDATE_CURRENT);
 
         Calendar cal = Calendar.getInstance();
         cal.setTimeInMillis(System.currentTimeMillis());
@@ -175,7 +172,6 @@ public class TarefaService extends Service {
 
         try {
             counter -= incrementBy;
-
 
             sendMessageToUI(counter);
 

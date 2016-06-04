@@ -2,16 +2,12 @@ package br.edu.fa7.pomodoro.activity;
 
 import android.annotation.TargetApi;
 import android.app.Activity;
-import android.content.BroadcastReceiver;
 import android.content.ComponentName;
 import android.content.ContentValues;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.IntentFilter;
 import android.content.ServiceConnection;
-import android.database.Cursor;
-import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Color;
 import android.os.Build;
 import android.os.Handler;
@@ -20,7 +16,6 @@ import android.os.Message;
 import android.os.Bundle;
 import android.os.Messenger;
 import android.os.RemoteException;
-import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -30,15 +25,16 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.ImageView;
-import android.widget.SimpleAdapter;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.Timer;
 
+import br.edu.fa7.pomodoro.EnuStatus;
 import br.edu.fa7.pomodoro.R;
 import br.edu.fa7.pomodoro.connection.DataBaseHelper;
+import br.edu.fa7.pomodoro.dao.TarefaDAO;
 import br.edu.fa7.pomodoro.entity.Tarefa;
 
 import br.edu.fa7.pomodoro.service.TarefaService;
@@ -60,24 +56,24 @@ public class MainActivity extends Activity implements View.OnClickListener {
 
     public TextView cronometro;
     private Messenger mService = null;
-    final Messenger mMessenger = new Messenger(new IncomingHandler());
-
+    //    final Messenger mMessenger = new Messenger(new IncomingHandler());
+    private Handler handler = new TesteHandler();
     private boolean mIsBound;
     Intent intent;
+    private Timer timer;
+    int counter = 5;
+    int incrementBy = 1;
+    private TarefaDAO tarefaDAO;
+    private List<Tarefa> tarefas;
 
+    private static final String DESCONECTADO = "Disconnected.";
 
-
-
-
-
-
-    public class IncomingHandler extends Handler {
+    public class TesteHandler extends Handler {
 
 
         @Override
         public void handleMessage(Message msg) {
             switch (msg.what) {
-
 
                 case TarefaService.MSG_SET_STRING_VALUE:
 
@@ -106,6 +102,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
 
         btnTask.setOnClickListener(this);
 
+
         mLayoutManager = new LinearLayoutManager(this);
 
 
@@ -117,8 +114,9 @@ public class MainActivity extends Activity implements View.OnClickListener {
 
 
         intent = new Intent(this, TarefaService.class);
+        tarefaDAO = new TarefaDAO(getBaseContext());
 
-
+        readMessage();
     }
 
 
@@ -182,6 +180,37 @@ public class MainActivity extends Activity implements View.OnClickListener {
     }
 
 
+    private void onTimerTick() {
+
+        try {
+
+            counter -= incrementBy;
+
+
+            sendMessageToUI(counter);
+
+        } catch (Throwable t) {
+            Log.e("TimerTick", "Timer Tick Failed.", t);
+        }
+    }
+
+
+    private void sendMessageToUI(int intvaluetosend) {
+
+        if (intvaluetosend <= 0) {
+            timer.cancel();
+            counter = 5;
+        } else {
+
+            cronometro.setText(intvaluetosend + "");
+
+
+        }
+
+
+    }
+
+
     private ServiceConnection mConnection = new ServiceConnection()
 
     {
@@ -193,12 +222,13 @@ public class MainActivity extends Activity implements View.OnClickListener {
                 mIsBound = true;
                 mService = new Messenger(service);
 
-                cronometro.setText("25:01");
+                Message msg = new Message();
+                msg.what = TarefaService.MSG_SET_STRING_VALUE;
 
 
-                Message msg = Message.obtain(null, TarefaService.MSG_REGISTER_CLIENT);
-                msg.replyTo = mMessenger;
-                mService.send(msg);
+//                Message msg = Message.obtain(null, TarefaService.MSG_REGISTER_CLIENT);
+//                msg.replyTo = mMessenger;
+//                mService.send(msg);
                 Log.i("MyService", "Cliente Conectado.");
 
             } catch (Exception e) {
@@ -208,7 +238,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
 
         @Override
         public void onServiceDisconnected(ComponentName className) {
-            cronometro.setText("Disconnected.");
+            cronometro.setText(DESCONECTADO);
             try {
                 Message msg = Message.obtain(null, TarefaService.MSG_UNREGISTER_CLIENT);
                 msg.replyTo = mService;
@@ -224,7 +254,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
 
     public void doBindService() {
 
-        if(mIsBound) {
+        if (mIsBound) {
             bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
             mIsBound = false;
         }
@@ -252,22 +282,81 @@ public class MainActivity extends Activity implements View.OnClickListener {
     }
 
 
+    public void enviarMessage() {
+
+//                for(int i=0;i<10;i++){
+//                    Message msg = new Message();
+//                    msg.what = TarefaService.MSG_SET_STRING_VALUE;
+//                    Bundle b = new Bundle();
+//                    b.putString("param_cron", i+Math.random()+"");
+//                    msg.setData(b);
+//
+//                    handler.sendMessageAtTime(msg, 1000);
+//
+//                }
+
+
+//        timer = new Timer();
+//
+//        timer.scheduleAtFixedRate(new TimerTask() {
+//            public void run() {
+//                onTimerTick();
+//            }
+//        }, 1, 1000L);
+
+    }
+
+
+    public void readMessage() {
+
+
+        String id = intent.getStringExtra("_id");
+        if (id != null) {
+            StringBuilder msgs = new StringBuilder();
+            msgs.append("Tarefa: ");
+            msgs.append(id);
+            msgs.append(", Título: ");
+            msgs.append(intent.getStringExtra("nome"));
+            msgs.append(" finalizada com sucesso.");
+
+
+            for (Tarefa tarefa : tarefas) {
+                if (tarefa.getId() == Integer.parseInt(id)) {
+                    int status = EnuStatus.CONCLUIDO.getId();
+
+                    tarefaDAO.update(id, tarefa.getPomodoro(), status);
+                    tarefa = null;
+                    Toast.makeText(getApplicationContext(), msgs.toString(), Toast.LENGTH_LONG).show();
+                    break;
+                }
+
+            }
+
+
+        }
+
+    }
+
+
     public class MyAdapter extends RecyclerView.Adapter<MyAdapter.MyViewHolder> {
 
-        private final String MSG_UPDATE_SUCESSO = "Pomodoro atualizado com sucesso!!!";
-        private final String MSG_DELETE_SUCESSO = "Pomodoro concluído com sucesso!!!";
-        private final String MSG_ERRO_SQL = "Erro ao manipular a base de dados";
-        private List<Tarefa> tarefas;
-        private LayoutInflater mLayoutInflater;
-        private DataBaseHelper helper;
 
+        private LayoutInflater mLayoutInflater;
+        private TarefaDAO tarefaDAO;
+        private Context contexto;
         private boolean mCounterStarted;
+
+        private static final String MSG_UPDATE_SUCESSO = "Pomodoro atualizado com sucesso!!!";
+        private static final String MSG_DELETE_SUCESSO = "Pomodoro concluído com sucesso!!!";
+        private static final String MSG_ERRO_SQL = "Erro ao manipular a base de dados";
+
 
         @Override
         public MyViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
 
             View view = mLayoutInflater.inflate(R.layout.item_layout, parent, false);
             MyViewHolder mViewHolder = new MyViewHolder(view);
+
 
             mCounterStarted = false;
 
@@ -276,36 +365,95 @@ public class MainActivity extends Activity implements View.OnClickListener {
 
         public MyAdapter(Context context) {
 
-            helper = new DataBaseHelper(context);
-            this.tarefas = listarTarefas();
+
+            tarefaDAO = new TarefaDAO(context);
+            this.contexto = context;
+
+            tarefas = tarefaDAO.getTarefas();
+
             this.mLayoutInflater = (LayoutInflater) context.getSystemService(Context.LAYOUT_INFLATER_SERVICE);
         }
 
 
-        private List<Tarefa> listarTarefas() {
+        private void update(String id, int status) {
 
-            SQLiteDatabase db = helper.getReadableDatabase();
-            Cursor cursor = db.rawQuery("SELECT * FROM TAREFA", null);
-            cursor.moveToFirst();
 
-            tarefas = new ArrayList<>();
+            Toast toast;
 
-            for (int i = 0; i < cursor.getCount(); i++) {
-                int id = cursor.getInt(0);
+            long resultado = tarefaDAO.update(id,status);
 
-                String titulo = cursor.getString(1);
 
-                String descricao = cursor.getString(2);
+            if (resultado != -1) {
+                refreshView();
+                toast = Toast.makeText(contexto,
+                        MSG_UPDATE_SUCESSO,
+                        Toast.LENGTH_SHORT);
+                toast.show();
+            } else {
+                toast = Toast.makeText(contexto,
+                        MSG_ERRO_SQL,
+                        Toast.LENGTH_SHORT);
+                toast.show();
 
-                Integer nrPomodoro = cursor.getInt(3);
-
-                tarefas.add(new Tarefa(id, titulo, descricao, nrPomodoro, R.drawable.evolution_tasks));
-
-                cursor.moveToNext();
             }
-            cursor.close();
+        }
 
-            return tarefas;
+
+
+
+        private void update(String id, int nrPomodoro, int status) {
+
+
+
+            Toast toast;
+
+            long resultado = tarefaDAO.update(id, (nrPomodoro - 1), status);
+
+
+            if (resultado != -1) {
+                refreshView();
+                toast = Toast.makeText(contexto,
+                        MSG_UPDATE_SUCESSO,
+                        Toast.LENGTH_SHORT);
+                toast.show();
+            } else {
+                toast = Toast.makeText(contexto,
+                        MSG_ERRO_SQL,
+                        Toast.LENGTH_SHORT);
+                toast.show();
+
+            }
+        }
+
+
+        private void remover(String id) {
+
+            Toast toast;
+
+            if (tarefaDAO.delete(id) != -1) {
+                refreshView();
+                toast = Toast.makeText(contexto,
+                        MSG_DELETE_SUCESSO,
+                        Toast.LENGTH_SHORT);
+                toast.show();
+            } else {
+                toast = Toast.makeText(contexto,
+                        MSG_ERRO_SQL,
+                        Toast.LENGTH_SHORT);
+                toast.show();
+
+            }
+
+        }
+
+
+        private void refreshView() {
+
+            mAdapter = new MyAdapter(MainActivity.this);
+            recyclerView.setAdapter(mAdapter);
+
+            mLayoutManager = new LinearLayoutManager(MainActivity.this);
+            recyclerView.setLayoutManager(mLayoutManager);
 
         }
 
@@ -319,6 +467,28 @@ public class MainActivity extends Activity implements View.OnClickListener {
             holder.pomodoro.setText(tarefa.getPomodoro().toString());
             holder.mId.setText(tarefa.getId() + "");
 
+            switch (tarefa.getStatus()) {
+
+                case 0:
+                    holder.itemView.setBackgroundColor(Color.GRAY);
+                    holder.btnStart.setEnabled(Boolean.TRUE);
+                    holder.btnStop.setEnabled(Boolean.TRUE);
+                    break;
+                case 1:
+                    holder.itemView.setBackgroundColor(Color.RED);
+                    holder.btnStart.setEnabled(Boolean.FALSE);
+                    holder.btnStop.setEnabled(Boolean.TRUE);
+                    break;
+                case 2:
+
+                    holder.itemView.setBackgroundColor(Color.GREEN);
+                    holder.btnStop.setEnabled(Boolean.FALSE);
+                    holder.btnStart.setEnabled(Boolean.TRUE);
+                    break;
+                default:
+
+
+            }
 
         }
 
@@ -327,8 +497,6 @@ public class MainActivity extends Activity implements View.OnClickListener {
         public int getItemCount() {
             return tarefas.size();
         }
-
-
 
 
         public class MyViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
@@ -362,8 +530,6 @@ public class MainActivity extends Activity implements View.OnClickListener {
                     @Override
                     public boolean onLongClick(View view) {
 
-                        Intent intent = new Intent(view.getContext(), TarefaActivity.class);
-
 
                         alertDialog.show();
                         return true;
@@ -379,36 +545,36 @@ public class MainActivity extends Activity implements View.OnClickListener {
             public void onClick(View view) {
 
                 String id = mId.getText().toString();
+                String nome = titulo.getText().toString();
+                int nrPomodoro = Integer.parseInt(pomodoro.getText().toString());
 
                 switch (view.getId()) {
                     case R.id.start:
                         Bundle bundle = new Bundle();
                         bundle.putString("_id", id);
+                        bundle.putString("nome", nome);
                         intent.putExtras(bundle);
+
+//                        enviarMessage();
 
                         startService(intent);
                         doBindService();
-                        itemView.setBackgroundColor(Color.RED);
-                        btnStart.setEnabled(Boolean.FALSE);
-                        btnStop.setEnabled(Boolean.TRUE);
+
+
+                        update(id, EnuStatus.ATIVO.getId());
+
                         break;
                     case R.id.stop:
-                        doUnbindService();
+//                    doUnbindService();
                         stopService(intent);
-                        itemView.setBackgroundColor(Color.GREEN);
-                        btnStop.setEnabled(Boolean.FALSE);
-                        btnStart.setEnabled(Boolean.TRUE);
 
-                        String nrPomodoro = pomodoro.getText().toString();
+                        if (nrPomodoro < 1) {
 
-
-                        if (nrPomodoro.equals("1")) {
-
-                            remove(id);
+                            remover(id);
 
                         } else {
 
-                            atualizar(id, nrPomodoro);
+                            update(id, nrPomodoro, EnuStatus.CONCLUIDO.getId());
 
                         }
 
@@ -417,68 +583,6 @@ public class MainActivity extends Activity implements View.OnClickListener {
                 }
             }
 
-            private void refreshView() {
-
-                mAdapter = new MyAdapter(MainActivity.this);
-                recyclerView.setAdapter(mAdapter);
-
-                mLayoutManager = new LinearLayoutManager(MainActivity.this);
-                recyclerView.setLayoutManager(mLayoutManager);
-
-            }
-
-            private void atualizar(String id, String nrPomodoro) {
-
-                int pomodoro = Integer.parseInt(nrPomodoro) - 1;
-                Toast toast;
-
-
-                SQLiteDatabase db = helper.getWritableDatabase();
-
-                ContentValues values = new ContentValues();
-                values.put("qtd_pomodoro", pomodoro);
-
-                long resultado = db.update("tarefa", values, "_id = ?",
-                        new String[]{id});
-
-                if (resultado != -1) {
-                    refreshView();
-                    toast = Toast.makeText(getApplicationContext(),
-                            MSG_UPDATE_SUCESSO,
-                            Toast.LENGTH_SHORT);
-                    toast.show();
-                } else {
-                    toast = Toast.makeText(getApplicationContext(),
-                            MSG_ERRO_SQL,
-                            Toast.LENGTH_SHORT);
-                    toast.show();
-
-                }
-            }
-
-
-            private void remove(String id) {
-                long resultado;
-                SQLiteDatabase db = helper.getWritableDatabase();
-                String where[] = new String[]{id};
-                resultado = db.delete("tarefa", "_id=?", where);
-                Toast toast;
-
-                if (resultado != -1) {
-                    refreshView();
-                    toast = Toast.makeText(getApplicationContext(),
-                            MSG_DELETE_SUCESSO,
-                            Toast.LENGTH_SHORT);
-                    toast.show();
-                } else {
-                    toast = Toast.makeText(getApplicationContext(),
-                            MSG_ERRO_SQL,
-                            Toast.LENGTH_SHORT);
-                    toast.show();
-
-                }
-
-            }
 
             private AlertDialog criaAlertDialog(Context contexto) {
                 String editar = String.valueOf(R.string.editar);
@@ -502,8 +606,6 @@ public class MainActivity extends Activity implements View.OnClickListener {
                 return builder.create();
             }
         }
-
-
     }
 
 
