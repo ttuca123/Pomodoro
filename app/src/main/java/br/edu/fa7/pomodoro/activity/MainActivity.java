@@ -56,7 +56,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
 
     public TextView cronometro;
     private Messenger mService = null;
-    //    final Messenger mMessenger = new Messenger(new IncomingHandler());
+
     private Handler handler = new TesteHandler();
     private boolean mIsBound;
     Intent intent;
@@ -380,7 +380,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
 
             Toast toast;
 
-            long resultado = tarefaDAO.update(id,status);
+            long resultado = tarefaDAO.update(id, status);
 
 
             if (resultado != -1) {
@@ -399,10 +399,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
         }
 
 
-
-
         private void update(String id, int nrPomodoro, int status) {
-
 
 
             Toast toast;
