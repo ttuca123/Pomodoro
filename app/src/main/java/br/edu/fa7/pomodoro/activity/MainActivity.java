@@ -333,7 +333,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
                 if (tarefa.getId() == Integer.parseInt(id)) {
                     int status = EnuStatus.CONCLUIDO.getId();
                     if (tarefa.getPomodoro() > 1) {
-                        tarefaDAO.update(id, tarefa.getPomodoro()-1, status);
+                        tarefaDAO.update(id, tarefa.getPomodoro() - 1, status);
 
                         Toast.makeText(getApplicationContext(), msgs.toString(), Toast.LENGTH_LONG).show();
 
@@ -539,7 +539,8 @@ public class MainActivity extends Activity implements View.OnClickListener {
                 mId = (TextView) itemView.findViewById(R.id._id);
 
 
-                this.alertDialog = criaAlertDialog(itemView.getContext());
+                this.alertDialog = criaAlertDialog(itemView.getContext(), mId.getText().toString());
+
                 imageView.setOnLongClickListener(new View.OnLongClickListener() {
                     @Override
                     public boolean onLongClick(View view) {
@@ -598,7 +599,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
             }
 
 
-            private AlertDialog criaAlertDialog(Context contexto) {
+            private AlertDialog criaAlertDialog(Context contexto, final String id) {
                 String editar = String.valueOf(R.string.editar);
                 String remover = String.valueOf(R.string.remover);
 
@@ -613,6 +614,14 @@ public class MainActivity extends Activity implements View.OnClickListener {
                 builder.setCancelable(true).setPositiveButton("EDITAR", new DialogInterface.OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialogInterface, int i) {
+                        Bundle bundle = new Bundle();
+                        bundle.putString("_id", id);
+
+                        Intent it = new Intent(getApplicationContext(), TarefaActivity.class);
+
+                        it.putExtras(bundle);
+                        
+                        startActivityForResult(it, NEW_ACTIVITY_ID);
 
 
                     }

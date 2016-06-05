@@ -41,6 +41,21 @@ public class TarefaActivity extends Activity implements View.OnClickListener {
         descricao = (TextView) findViewById(R.id.descricao);
         nrPomodoro = (TextView) findViewById(R.id.nrPomodoro);
         helper = new DataBaseHelper(this);
+        preencherDados();
+
+
+    }
+
+    private void preencherDados() {
+
+        if (getIntent().getStringExtra("_id") != null) {
+
+
+            titulo.setText(""+getIntent().getStringExtra("_id"));
+            descricao.setText("");
+            nrPomodoro.setText("");
+        }
+
     }
 
     @Override

@@ -54,6 +54,8 @@ public class DataBaseHelper extends SQLiteOpenHelper {
     }
 
 
+
+
     public List<?> getList(String query){
         SQLiteDatabase db = this.getReadableDatabase();
         Cursor cursor=null;
