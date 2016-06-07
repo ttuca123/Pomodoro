@@ -24,7 +24,7 @@ import java.util.TimerTask;
 /**
  * Criado por Artur Cavalcante 29/50/2016
  */
-public class TarefaService extends Service {
+public class TarefaService extends Service implements ServiceNotifier {
 
     private int counter = 5;
     private int incrementBy = 1;
@@ -42,6 +42,13 @@ public class TarefaService extends Service {
     AlarmManager alarmManager;
     PendingIntent pendingIntent;
 
+    private ListenValue obj;
+    private IBinder binder;
+
+    private boolean stop;
+    private boolean isCountStarted;
+
+
     public Toast toast;
 
     private final String MSG_TAREFA_INICIADA = "Tarefa iniciada, id=";
@@ -49,7 +56,43 @@ public class TarefaService extends Service {
 
     @Override
     public IBinder onBind(Intent intent) {
-        return mBinder;
+        return binder;
+    }
+
+
+    public void startCounter() {
+        if (!isCountStarted) {
+            isCountStarted = true;
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    long count = 0;
+                    while (!stop) {
+                        try {
+                            count += 1;
+                            notifyValue(count);
+                            Log.i("App", "Valor: " + count);
+                            Thread.sleep(1000);
+                        } catch (InterruptedException e) {
+                            e.printStackTrace();
+                        }
+                    }
+                    stop = false;
+                    isCountStarted = false;
+                }
+            }).start();
+        }
+
+    }
+
+    public void stopCounter() {
+        this.stop = true;
+    }
+
+
+    @Override
+    public void notifyValue(long value) {
+        obj.newValue(value);
     }
 
 
@@ -202,7 +245,13 @@ public class TarefaService extends Service {
     }
 
 
-    public void closeService(){
+    @Override
+    public void add(ListenValue obj) {
+        this.obj = obj;
+    }
+
+
+    public void closeService() {
         stopSelf();
     }
 

@@ -36,6 +36,7 @@ import br.edu.fa7.pomodoro.R;
 import br.edu.fa7.pomodoro.dao.TarefaDAO;
 import br.edu.fa7.pomodoro.entity.Tarefa;
 
+import br.edu.fa7.pomodoro.service.BoundService;
 import br.edu.fa7.pomodoro.service.ListenValue;
 import br.edu.fa7.pomodoro.service.TarefaService;
 
@@ -44,20 +45,23 @@ import br.edu.fa7.pomodoro.service.TarefaService;
  * Criado por Artur Cavalcante 29/50/2016
  */
 
-public class MainActivity extends Activity implements View.OnClickListener , ListenValue {
+public class MainActivity extends Activity implements View.OnClickListener, ListenValue {
 
 
     private static final short NEW_ACTIVITY_ID = 1;
 
-    private RecyclerView recyclerView;
+    private RecyclerView mRecyclerView;
     private RecyclerView.Adapter mAdapter;
     private RecyclerView.LayoutManager mLayoutManager;
-    private Button btnTask;
+    private Button mBtnTask;
 
     public TextView mCronometro;
     private Messenger mService = null;
 
-//    private Handler handler = new TesteHandler();
+    private BoundService mBoundService;
+    private Intent mBoundServiceIntent;
+
+
     private boolean mIsBound;
     Intent intent;
     private Timer timer;
@@ -85,37 +89,16 @@ public class MainActivity extends Activity implements View.OnClickListener , Lis
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        if(mIsBound){
+        if (mIsBound) {
             mTarefaService.closeService();
         }
     }
 
-//    public class TesteHandler extends Handler {
-//
-//
-//        @Override
-//        public void handleMessage(Message msg) {
-//            switch (msg.what) {
-//
-//                case TarefaService.MSG_SET_STRING_VALUE:
-//
-//                    String str1 = msg.getData().getString("param_cron");
-//                    mCronometro.setText(str1);
-//
-//                    break;
-//                case TarefaService.MSG_SET_INT_VALUE:
-//                    mCronometro.setText("Int Message: " + msg.arg1);
-//                    break;
-//                default:
-//                    super.handleMessage(msg);
-//            }
-//        }
-//    }
-
     @Override
-    protected void onNewIntent(Intent intent) {
-        super.onNewIntent(intent);
-        readMessage();
+    protected void onStart() {
+        super.onStart();
+        bindService(mBoundServiceIntent, mConnection, Context.BIND_AUTO_CREATE);
+
     }
 
     @Override
@@ -129,18 +112,27 @@ public class MainActivity extends Activity implements View.OnClickListener , Lis
         readMessage();
 
         refreshView();
+
+
+        mBoundServiceIntent = new Intent(this, BoundService.class);
+
+        startService(mBoundServiceIntent);
+
+
         mHandler = new Handler();
+
+
     }
 
 
     private void getInstancy() {
-        recyclerView = (RecyclerView) findViewById(R.id.mainReclyclerView);
+        mRecyclerView = (RecyclerView) findViewById(R.id.mainReclyclerView);
 
-        btnTask = (Button) findViewById(R.id.btnTask);
+        mBtnTask = (Button) findViewById(R.id.btnTask);
 
         mCronometro = (TextView) findViewById(R.id.cronometro);
 
-        btnTask.setOnClickListener(this);
+        mBtnTask.setOnClickListener(this);
 
         intent = new Intent(this, TarefaService.class);
 
@@ -170,8 +162,8 @@ public class MainActivity extends Activity implements View.OnClickListener , Lis
                     mAdapter = new MyAdapter(this);
 
                     mLayoutManager = new LinearLayoutManager(this);
-                    recyclerView.setLayoutManager(mLayoutManager);
-                    recyclerView.setAdapter(mAdapter);
+                    mRecyclerView.setLayoutManager(mLayoutManager);
+                    mRecyclerView.setAdapter(mAdapter);
 
 
                 }
@@ -233,11 +225,18 @@ public class MainActivity extends Activity implements View.OnClickListener , Lis
 
             try {
 
+                BoundService.LocalBinder binder = (BoundService.LocalBinder) service;
 
-                TarefaService.LocalBinder binder = (TarefaService.LocalBinder) service;
-                mTarefaService = binder.getService();
-
+                mBoundService = binder.getService();
+                mBoundService.add(MainActivity.this);
                 mIsBound = true;
+
+
+//                TarefaService.LocalBinder binder = (TarefaService.LocalBinder) service;
+//                mTarefaService = binder.getService();
+//                mTarefaService.add(MainActivity.this);
+//
+//                mIsBound = true;
 
 
                 Log.i("MyService", "Cliente Conectado.");
@@ -250,13 +249,13 @@ public class MainActivity extends Activity implements View.OnClickListener , Lis
         @Override
         public void onServiceDisconnected(ComponentName className) {
             mCronometro.setText(DESCONECTADO);
-            try {
-                Message msg = Message.obtain(null, TarefaService.MSG_UNREGISTER_CLIENT);
-                msg.replyTo = mService;
-                mService.send(msg);
-            } catch (RemoteException e) {
-                e.printStackTrace();
-            }
+//            try {
+//                Message msg = Message.obtain(null, TarefaService.MSG_UNREGISTER_CLIENT);
+//                msg.replyTo = mService;
+//                mService.send(msg);
+//            } catch (RemoteException e) {
+//                e.printStackTrace();
+//            }
 
             mIsBound = false;
         }
@@ -265,10 +264,10 @@ public class MainActivity extends Activity implements View.OnClickListener , Lis
 
     public void doBindService() {
 
-        if (mIsBound) {
-            bindService(intent, mConnection, Context.BIND_AUTO_CREATE);
+//        if (mIsBound) {
+            bindService(mBoundServiceIntent, mConnection, Context.BIND_AUTO_CREATE);
             mIsBound = false;
-        }
+//        }
 
     }
 
@@ -366,10 +365,10 @@ public class MainActivity extends Activity implements View.OnClickListener , Lis
     public void refreshView() {
 
         mAdapter = new MyAdapter(MainActivity.this);
-        recyclerView.setAdapter(mAdapter);
+        mRecyclerView.setAdapter(mAdapter);
 
         mLayoutManager = new LinearLayoutManager(MainActivity.this);
-        recyclerView.setLayoutManager(mLayoutManager);
+        mRecyclerView.setLayoutManager(mLayoutManager);
 
     }
 
@@ -555,17 +554,13 @@ public class MainActivity extends Activity implements View.OnClickListener , Lis
                 mId = (TextView) itemView.findViewById(R.id._id);
 
 
-                final CharSequence[] items = {
-                        "Editar",
-                        "Remover"};
-
-
-                //this.alertDialog = criaAlertDialog(itemView.getContext(), mId.getText().toString());
-
                 imageView.setOnLongClickListener(new View.OnLongClickListener() {
                     @Override
                     public boolean onLongClick(View view) {
 
+                        CharSequence[] items = {
+                                "Editar",
+                                "Remover"};
 
                         AlertDialog.Builder builder = new AlertDialog.Builder(contexto).setTitle("Opções");
                         builder.setItems(items, new DialogInterface.OnClickListener() {
@@ -627,14 +622,17 @@ public class MainActivity extends Activity implements View.OnClickListener , Lis
 
 //                        enviarMessage();
 
-                        startService(intent);
-                        doBindService();
+//                        startService(intent);
 
+//                        doBindService();
+                        mBoundService.startCounter(intent);
 
                         update(id, EnuStatus.ATIVO.getId());
 
                         break;
                     case R.id.stop:
+
+                        mBoundService.stopCounter();
 //                    doUnbindService();
                         stopService(intent);
 

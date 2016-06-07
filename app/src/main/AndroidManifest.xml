@@ -20,12 +20,19 @@
             android:label="@string/title_activity_tarefa"
             android:theme="@style/AppTheme.NoActionBar" android:screenOrientation="portrait"></activity>
 
-    <service android:process=":tarefas_background"
-        android:icon="@drawable/app"
+    <service
+
         android:name=".service.TarefaService"
         android:label="serviço"
-
         />
+
+        <service
+
+            android:name=".service.BoundService"
+
+            android:enabled="true"
+            android:exported="true"
+            />
 
         <receiver android:name=".service.MyBroadcastReceiver">
 
