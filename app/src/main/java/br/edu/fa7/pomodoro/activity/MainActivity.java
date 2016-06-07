@@ -8,14 +8,10 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.ServiceConnection;
-import android.graphics.Color;
 import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
-import android.os.Message;
 import android.os.Bundle;
-import android.os.Messenger;
-import android.os.RemoteException;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
@@ -38,7 +34,6 @@ import br.edu.fa7.pomodoro.entity.Tarefa;
 
 import br.edu.fa7.pomodoro.service.BoundService;
 import br.edu.fa7.pomodoro.service.ListenValue;
-import br.edu.fa7.pomodoro.service.TarefaService;
 
 
 /**
@@ -49,57 +44,21 @@ public class MainActivity extends Activity implements View.OnClickListener, List
 
 
     private static final short NEW_ACTIVITY_ID = 1;
-
     private RecyclerView mRecyclerView;
     private RecyclerView.Adapter mAdapter;
     private RecyclerView.LayoutManager mLayoutManager;
     private Button mBtnTask;
-
     public TextView mCronometro;
-    private Messenger mService = null;
-
-    private BoundService mBoundService;
     private Intent mBoundServiceIntent;
+    private BoundService mBoundService;
+    private boolean mIsBound = false;
 
-
-    private boolean mIsBound;
-    Intent intent;
     private Timer timer;
-
     private TarefaDAO tarefaDAO;
     private List<Tarefa> tarefas;
-
-    TarefaService mTarefaService;
-
     private Handler mHandler;
+    private static final String POMODORO = "25:00";
 
-    private static final String DESCONECTADO = "Disconnected.";
-
-    @Override
-    public void newValue(final long value) {
-        mHandler.post(new Runnable() {
-            @Override
-            public void run() {
-                mCronometro.setText(String.valueOf(value));
-            }
-        });
-    }
-
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        if (mIsBound) {
-            mTarefaService.closeService();
-        }
-    }
-
-    @Override
-    protected void onStart() {
-        super.onStart();
-        bindService(mBoundServiceIntent, mConnection, Context.BIND_AUTO_CREATE);
-
-    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -113,15 +72,7 @@ public class MainActivity extends Activity implements View.OnClickListener, List
 
         refreshView();
 
-
-        mBoundServiceIntent = new Intent(this, BoundService.class);
-
-        startService(mBoundServiceIntent);
-
-
-        mHandler = new Handler();
-
-
+        doBindService();
     }
 
 
@@ -134,194 +85,35 @@ public class MainActivity extends Activity implements View.OnClickListener, List
 
         mBtnTask.setOnClickListener(this);
 
-        intent = new Intent(this, TarefaService.class);
 
         tarefaDAO = new TarefaDAO(getBaseContext());
 
+        mBoundServiceIntent = new Intent(this, BoundService.class);
 
-    }
+        startService(mBoundServiceIntent);
 
-    @Override
-    protected void onSaveInstanceState(Bundle outState) {
-        super.onSaveInstanceState(outState);
-        if (outState == null) {
-
-            outState.putString("textStatus", mCronometro.getText().toString());
-
-        }
-
-    }
-
-    @Override
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
-        super.onActivityResult(requestCode, resultCode, data);
-        switch (requestCode) {
-            case NEW_ACTIVITY_ID:
-                if (resultCode == RESULT_OK) {
-
-                    mAdapter = new MyAdapter(this);
-
-                    mLayoutManager = new LinearLayoutManager(this);
-                    mRecyclerView.setLayoutManager(mLayoutManager);
-                    mRecyclerView.setAdapter(mAdapter);
-
-
-                }
-            default:
-
-                break;
-        }
-
-    }
-
-    @Override
-    public void onClick(View v) {
-
-        Intent it = new Intent(this, TarefaActivity.class);
-        startActivityForResult(it, NEW_ACTIVITY_ID);
-
-    }
-
-
-    private void onTimerTick() {
-
-        try {
-            int counter = 5;
-            int incrementBy = 1;
-
-            counter -= incrementBy;
-
-
-            sendMessageToUI(counter);
-
-        } catch (Throwable t) {
-            Log.e("TimerTick", "Timer Tick Failed.", t);
-        }
-    }
-
-
-    private void sendMessageToUI(int intvaluetosend) {
-
-        if (intvaluetosend <= 0) {
-            timer.cancel();
-
-        } else {
-
-            mCronometro.setText(intvaluetosend + "");
-
-
-        }
+        mHandler = new Handler();
 
 
     }
 
+    public void refreshView() {
 
-    private ServiceConnection mConnection = new ServiceConnection()
+        mAdapter = new MyAdapter(MainActivity.this);
+        mRecyclerView.setAdapter(mAdapter);
 
-    {
-        @Override
-        public void onServiceConnected(ComponentName className, IBinder service) {
+        mLayoutManager = new LinearLayoutManager(MainActivity.this);
+        mRecyclerView.setLayoutManager(mLayoutManager);
 
-
-            try {
-
-                BoundService.LocalBinder binder = (BoundService.LocalBinder) service;
-
-                mBoundService = binder.getService();
-                mBoundService.add(MainActivity.this);
-                mIsBound = true;
-
-
-//                TarefaService.LocalBinder binder = (TarefaService.LocalBinder) service;
-//                mTarefaService = binder.getService();
-//                mTarefaService.add(MainActivity.this);
-//
-//                mIsBound = true;
-
-
-                Log.i("MyService", "Cliente Conectado.");
-
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
-        }
-
-        @Override
-        public void onServiceDisconnected(ComponentName className) {
-            mCronometro.setText(DESCONECTADO);
-//            try {
-//                Message msg = Message.obtain(null, TarefaService.MSG_UNREGISTER_CLIENT);
-//                msg.replyTo = mService;
-//                mService.send(msg);
-//            } catch (RemoteException e) {
-//                e.printStackTrace();
-//            }
-
-            mIsBound = false;
-        }
-    };
-
-
-    public void doBindService() {
-
-//        if (mIsBound) {
-            bindService(mBoundServiceIntent, mConnection, Context.BIND_AUTO_CREATE);
-            mIsBound = false;
-//        }
 
     }
 
-
-    void doUnbindService() {
-        if (mIsBound) {
-
-            if (mService != null) {
-                try {
-                    Message msg = Message.obtain(null, TarefaService.MSG_UNREGISTER_CLIENT);
-                    msg.replyTo = mService;
-                    mService.send(msg);
-                } catch (RemoteException e) {
-                    e.printStackTrace();
-                }
-            }
-
-            unbindService(mConnection);
-            mIsBound = false;
-            mCronometro.setText("25:01");
-        }
-    }
-
-
-    public void enviarMessage() {
-
-//                for(int i=0;i<10;i++){
-//                    Message msg = new Message();
-//                    msg.what = TarefaService.MSG_SET_STRING_VALUE;
-//                    Bundle b = new Bundle();
-//                    b.putString("param_cron", i+Math.random()+"");
-//                    msg.setData(b);
-//
-//                    handler.sendMessageAtTime(msg, 1000);
-//
-//                }
-
-
-//        timer = new Timer();
-//
-//        timer.scheduleAtFixedRate(new TimerTask() {
-//            public void run() {
-//                onTimerTick();
-//            }
-//        }, 1, 1000L);
-
-    }
-
-
-    public void readMessage() {
+    private void readMessage() {
 
         String id = getIntent().getStringExtra("_id");
 
         if (id != null) {
+
 
             StringBuilder msgs = new StringBuilder();
             msgs.append("Tarefa: ");
@@ -344,12 +136,15 @@ public class MainActivity extends Activity implements View.OnClickListener, List
 
                         Toast.makeText(getApplicationContext(), msgs.toString(), Toast.LENGTH_LONG).show();
 
+
                     } else {
 
                         tarefaDAO.delete(id);
-                        tarefa = null;
+
+
                         Toast.makeText(getApplicationContext(), msgs.toString(), Toast.LENGTH_LONG).show();
                     }
+                    mIsBound = Boolean.FALSE;
 
                     break;
                 }
@@ -362,14 +157,111 @@ public class MainActivity extends Activity implements View.OnClickListener, List
     }
 
 
-    public void refreshView() {
+    @Override
+    public void newValue(final String value) {
+        mHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                mCronometro.setText(String.valueOf(value));
+            }
+        });
+    }
 
-        mAdapter = new MyAdapter(MainActivity.this);
-        mRecyclerView.setAdapter(mAdapter);
 
-        mLayoutManager = new LinearLayoutManager(MainActivity.this);
-        mRecyclerView.setLayoutManager(mLayoutManager);
+    @Override
+    protected void onStop() {
+        super.onStop();
+        if (mIsBound) {
+            unbindService(mConnection);
+        }
+    }
 
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        super.onActivityResult(requestCode, resultCode, data);
+        switch (requestCode) {
+            case NEW_ACTIVITY_ID:
+                if (resultCode == RESULT_OK) {
+
+                    mAdapter = new MyAdapter(this);
+
+                    mLayoutManager = new LinearLayoutManager(this);
+                    mRecyclerView.setLayoutManager(mLayoutManager);
+                    mRecyclerView.setAdapter(mAdapter);
+
+                }
+            default:
+
+                break;
+        }
+
+    }
+
+    @Override
+    public void onClick(View v) {
+
+        Intent it = new Intent(this, TarefaActivity.class);
+        startActivityForResult(it, NEW_ACTIVITY_ID);
+
+    }
+
+
+    private ServiceConnection mConnection = new ServiceConnection()
+
+    {
+        @Override
+        public void onServiceConnected(ComponentName className, IBinder service) {
+
+
+            try {
+
+                BoundService.LocalBinder binder = (BoundService.LocalBinder) service;
+
+                mBoundService = binder.getService();
+                mBoundService.add(MainActivity.this);
+                mIsBound = true;
+
+                Log.i("MyService", "Cliente Conectado.");
+
+            } catch (Exception e) {
+                e.printStackTrace();
+            }
+        }
+
+        @Override
+        public void onServiceDisconnected(ComponentName className) {
+
+            mIsBound = false;
+            Log.i("MyService", "Cliente Desconectado.");
+        }
+    };
+
+    private void doBindService() {
+        if (!mIsBound) {
+            bindService(mBoundServiceIntent, mConnection, Context.BIND_AUTO_CREATE);
+            mIsBound = Boolean.TRUE;
+        }
+
+    }
+
+    private void doUnbindService() {
+        if (mIsBound) {
+            mBoundService.closeService();
+
+            mCronometro.setText(POMODORO);
+            mIsBound = Boolean.FALSE;
+        }
+    }
+
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if (!mIsBound) {
+
+            doUnbindService();
+        }
     }
 
 
@@ -413,8 +305,6 @@ public class MainActivity extends Activity implements View.OnClickListener, List
         public void update(String id, int status) {
 
 
-            Toast toast;
-
             ContentValues values = new ContentValues();
 
             values.put("sta_status", status);
@@ -424,24 +314,25 @@ public class MainActivity extends Activity implements View.OnClickListener, List
 
             if (resultado != -1) {
                 refreshView();
-                toast = Toast.makeText(contexto,
-                        MSG_UPDATE_SUCESSO,
-                        Toast.LENGTH_SHORT);
-                toast.show();
+                exibirMensagem(MSG_UPDATE_SUCESSO);
+
             } else {
-                toast = Toast.makeText(contexto,
-                        MSG_ERRO_SQL,
-                        Toast.LENGTH_SHORT);
-                toast.show();
+                exibirMensagem(MSG_ERRO_SQL);
+
 
             }
         }
 
 
+        private void exibirMensagem(String mensagem) {
+
+            Toast toast = Toast.makeText(contexto,
+                    mensagem,
+                    Toast.LENGTH_SHORT);
+        }
+
         private void update(String id, int nrPomodoro, int status) {
 
-
-            Toast toast;
 
             ContentValues values = new ContentValues();
             values.put("qtd_pomodoro", nrPomodoro - 1);
@@ -452,15 +343,11 @@ public class MainActivity extends Activity implements View.OnClickListener, List
 
             if (resultado != -1) {
                 refreshView();
-                toast = Toast.makeText(contexto,
-                        MSG_UPDATE_SUCESSO,
-                        Toast.LENGTH_SHORT);
-                toast.show();
+                exibirMensagem(MSG_UPDATE_SUCESSO);
+
             } else {
-                toast = Toast.makeText(contexto,
-                        MSG_ERRO_SQL,
-                        Toast.LENGTH_SHORT);
-                toast.show();
+
+                exibirMensagem(MSG_ERRO_SQL);
 
             }
         }
@@ -468,19 +355,14 @@ public class MainActivity extends Activity implements View.OnClickListener, List
 
         private void remover(String id) {
 
-            Toast toast;
-
             if (tarefaDAO.delete(id) != -1) {
+
+                exibirMensagem(MSG_DELETE_SUCESSO);
                 refreshView();
-                toast = Toast.makeText(contexto,
-                        MSG_DELETE_SUCESSO,
-                        Toast.LENGTH_SHORT);
-                toast.show();
+
             } else {
-                toast = Toast.makeText(contexto,
-                        MSG_ERRO_SQL,
-                        Toast.LENGTH_SHORT);
-                toast.show();
+
+                exibirMensagem(MSG_ERRO_SQL);
 
             }
 
@@ -490,33 +372,32 @@ public class MainActivity extends Activity implements View.OnClickListener, List
         @Override
         public void onBindViewHolder(MyViewHolder holder, int position) {
             Tarefa tarefa = tarefas.get(position);
-            holder.imageView.setImageResource(tarefa.getImagem());
-            holder.titulo.setText(tarefa.getTitulo());
-            holder.descricao.setText(tarefa.getDescricao());
-            holder.pomodoro.setText(tarefa.getPomodoro().toString());
+            holder.mImageView.setImageResource(tarefa.getImagem());
+            holder.mTitulo.setText(tarefa.getTitulo());
+            holder.mDescricao.setText(tarefa.getDescricao());
+            holder.mPomodoro.setText(tarefa.getPomodoro().toString());
             holder.mId.setText(tarefa.getId() + "");
 
             switch (tarefa.getStatus()) {
 
                 case 0:
-                    holder.itemView.setBackgroundColor(Color.GRAY);
-                    holder.btnStart.setEnabled(Boolean.TRUE);
-                    holder.btnStop.setEnabled(Boolean.FALSE);
+
+
+                    holder.mBtnStart.setEnabled(Boolean.TRUE);
+                    holder.mBtnStop.setEnabled(Boolean.FALSE);
                     break;
                 case 1:
-                    holder.itemView.setBackgroundColor(Color.RED);
-                    holder.btnStart.setEnabled(Boolean.FALSE);
-                    holder.btnStop.setEnabled(Boolean.TRUE);
+
+                    holder.mBtnStart.setEnabled(Boolean.FALSE);
+                    holder.mBtnStop.setEnabled(Boolean.TRUE);
                     break;
                 case 2:
 
-                    holder.itemView.setBackgroundColor(Color.GREEN);
-                    holder.btnStop.setEnabled(Boolean.FALSE);
-                    holder.btnStart.setEnabled(Boolean.TRUE);
+
+                    holder.mBtnStop.setEnabled(Boolean.FALSE);
+                    holder.mBtnStart.setEnabled(Boolean.TRUE);
                     break;
                 default:
-
-
             }
 
         }
@@ -530,31 +411,31 @@ public class MainActivity extends Activity implements View.OnClickListener, List
 
         public class MyViewHolder extends RecyclerView.ViewHolder implements View.OnClickListener {
 
-            public ImageView imageView;
-            public TextView titulo;
-            public TextView descricao;
-            public TextView pomodoro;
+            public ImageView mImageView;
+            public TextView mTitulo;
+            public TextView mDescricao;
+            public TextView mPomodoro;
             public TextView mId;
-            public Button btnStart;
-            public Button btnStop;
+            public Button mBtnStart;
+            public Button mBtnStop;
             private AlertDialog alertDialog;
 
             @TargetApi(Build.VERSION_CODES.HONEYCOMB)
             public MyViewHolder(View itemView) {
                 super(itemView);
 
-                imageView = (ImageView) itemView.findViewById(R.id.imageView);
-                titulo = (TextView) itemView.findViewById(R.id.tarefa);
-                descricao = (TextView) itemView.findViewById(R.id.descricao);
-                pomodoro = (TextView) itemView.findViewById(R.id.lblPomodoro);
-                btnStart = (Button) itemView.findViewById(R.id.start);
-                btnStop = (Button) itemView.findViewById(R.id.stop);
-                btnStart.setOnClickListener(this);
-                btnStop.setOnClickListener(this);
+                mImageView = (ImageView) itemView.findViewById(R.id.imageView);
+                mTitulo = (TextView) itemView.findViewById(R.id.tarefa);
+                mDescricao = (TextView) itemView.findViewById(R.id.descricao);
+                mPomodoro = (TextView) itemView.findViewById(R.id.lblPomodoro);
+                mBtnStart = (Button) itemView.findViewById(R.id.start);
+                mBtnStop = (Button) itemView.findViewById(R.id.stop);
+                mBtnStart.setOnClickListener(this);
+                mBtnStop.setOnClickListener(this);
                 mId = (TextView) itemView.findViewById(R.id._id);
 
 
-                imageView.setOnLongClickListener(new View.OnLongClickListener() {
+                mImageView.setOnLongClickListener(new View.OnLongClickListener() {
                     @Override
                     public boolean onLongClick(View view) {
 
@@ -572,11 +453,11 @@ public class MainActivity extends Activity implements View.OnClickListener, List
                                     case 0:
                                         Bundle bundle = new Bundle();
                                         bundle.putString("_id", mId.getText().toString());
-                                        bundle.putString("mTitulo", titulo.getText().toString());
+                                        bundle.putString("mTitulo", mTitulo.getText().toString());
 
-                                        bundle.putString("mDescricao", descricao.getText().toString());
+                                        bundle.putString("mDescricao", mDescricao.getText().toString());
 
-                                        bundle.putString("mPomodoro", pomodoro.getText().toString());
+                                        bundle.putString("mPomodoro", mPomodoro.getText().toString());
 
                                         Intent it = new Intent(getBaseContext(), TarefaActivity.class);
 
@@ -610,31 +491,28 @@ public class MainActivity extends Activity implements View.OnClickListener, List
             public void onClick(View view) {
 
                 String id = mId.getText().toString();
-                String nome = titulo.getText().toString();
-                int nrPomodoro = Integer.parseInt(pomodoro.getText().toString());
+                String nome = mTitulo.getText().toString();
+                int nrPomodoro = Integer.parseInt(mPomodoro.getText().toString());
 
                 switch (view.getId()) {
                     case R.id.start:
+
+
                         Bundle bundle = new Bundle();
                         bundle.putString("_id", id);
                         bundle.putString("nome", nome);
-                        intent.putExtras(bundle);
-
-//                        enviarMessage();
-
-//                        startService(intent);
-
-//                        doBindService();
-                        mBoundService.startCounter(intent);
-
+                        mBoundServiceIntent.putExtras(bundle);
+                        mBoundService.startCounter(mBoundServiceIntent);
+                        mIsBound = Boolean.TRUE;
                         update(id, EnuStatus.ATIVO.getId());
 
                         break;
                     case R.id.stop:
 
-                        mBoundService.stopCounter();
-//                    doUnbindService();
-                        stopService(intent);
+                        mBoundService.closeService();
+
+                        mIsBound = Boolean.FALSE;
+
 
                         if (nrPomodoro <= 1) {
 

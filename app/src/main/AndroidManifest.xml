@@ -20,11 +20,7 @@
             android:label="@string/title_activity_tarefa"
             android:theme="@style/AppTheme.NoActionBar" android:screenOrientation="portrait"></activity>
 
-    <service
 
-        android:name=".service.TarefaService"
-        android:label="serviço"
-        />
 
         <service
 

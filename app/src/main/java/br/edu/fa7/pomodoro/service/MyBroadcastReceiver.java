@@ -8,14 +8,12 @@ import android.app.TaskStackBuilder;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.Color;
+
 import android.media.RingtoneManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.support.v4.app.NotificationCompat;
-import android.support.v4.app.NotificationCompat.Style;
-import android.util.StringBuilderPrinter;
 
 import br.edu.fa7.pomodoro.activity.MainActivity;
 import br.edu.fa7.pomodoro.R;
@@ -50,15 +48,11 @@ public class MyBroadcastReceiver extends BroadcastReceiver {
         {
             Uri alarmSound = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
 
-
-
             NotificationCompat.Builder builder = new NotificationCompat.Builder(context).setSmallIcon(R.drawable.notification_template_icon_bg)
                     .setContentTitle(TITLE_NOTIFICACAO).setContentText(descNotificacao.toString())
                     .setAutoCancel(true).setTicker("Nova Mensagem!").setSound(alarmSound);
 
             builder.setLights(100, 50, 70);
-
-
 
             Intent it = new Intent(context, MainActivity.class);
 

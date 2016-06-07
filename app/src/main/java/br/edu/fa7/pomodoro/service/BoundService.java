@@ -17,23 +17,21 @@ import java.util.Calendar;
 import java.util.Timer;
 import java.util.TimerTask;
 
+/**
+ * Criado por Artur Cavalcante 07/06/2016
+ */
+
 public class BoundService extends Service implements ServiceNotifier {
 
+    private int counter = 5;
     private ListenValue obj;
     private IBinder binder;
     private boolean stop;
     private boolean isCountStarted;
-
-    public static final int MSG_REGISTER_CLIENT = 0;
-    public static final int MSG_UNREGISTER_CLIENT = 2;
-    public static final int MSG_SET_INT_VALUE = 3;
-    public static final int MSG_SET_STRING_VALUE = 4;
-    AlarmManager alarmManager;
-    PendingIntent pendingIntent;
-    int counter = 25;
-    private Timer timer;
+    private AlarmManager alarmManager;
+    private PendingIntent pendingIntent;
     private final String MSG_TAREFA_INICIADA = "Tarefa iniciada, id=";
-
+    private Thread thread;
 
     public BoundService() {
         this.stop = false;
@@ -48,9 +46,7 @@ public class BoundService extends Service implements ServiceNotifier {
 
     private void mostrarNotificacao(Intent it) {
 
-
         pendingIntent = PendingIntent.getBroadcast(BoundService.this, 0, it, PendingIntent.FLAG_UPDATE_CURRENT);
-
 
         Calendar cal = Calendar.getInstance();
         cal.setTimeInMillis(System.currentTimeMillis());
@@ -62,16 +58,19 @@ public class BoundService extends Service implements ServiceNotifier {
     }
 
 
-
-
     public void startCounter(final Intent intent) {
-
 
         if (intent.getExtras() != null) {
 
             if (!isCountStarted) {
                 isCountStarted = true;
-                new Thread(new Runnable() {
+                Toast toast = Toast.makeText(this,
+                        MSG_TAREFA_INICIADA + intent.getStringExtra("_id"),
+                        Toast.LENGTH_SHORT);
+                toast.show();
+
+
+                thread = new Thread() {
                     @Override
                     public void run() {
 
@@ -82,39 +81,35 @@ public class BoundService extends Service implements ServiceNotifier {
 
                         mostrarNotificacao(it);
 
-//                        Toast toast = Toast.makeText(this,
-//                                MSG_TAREFA_INICIADA + it.getStringExtra("_id"),
-//                                Toast.LENGTH_SHORT);
-//                        toast.show();
-
-
-//                        long count = 25;
-                        while (!stop) {
+                        do {
                             try {
                                 counter -= 1;
-                                notifyValue(counter);
+
+
+                                int minutos = counter/60;
+                                int segundos = counter%60;
+
+                                notifyValue(minutos+" : "+segundos);
                                 Log.i("App", "Valor: " + counter);
                                 Thread.sleep(1000);
 
-                                if(counter==0){
-                                    stop=Boolean.TRUE;
-                                    counter=25;
-
+                                if (counter == 0) {
+                                    stopCounter();
 
                                 }
 
                             } catch (InterruptedException e) {
                                 e.printStackTrace();
                             }
-                        }
+                        } while (!stop);
                         stop = false;
                         isCountStarted = false;
+                        counter = 5;
                     }
-                }).start();
 
+                };
 
-
-
+                thread.start();
             }
 
         }
@@ -122,11 +117,30 @@ public class BoundService extends Service implements ServiceNotifier {
 
 
     public void stopCounter() {
+        thread.interrupt();
         this.stop = true;
+
     }
 
     public void closeService() {
-        stopSelf();
+
+        if (alarmManager != null) {
+            alarmManager.cancel(pendingIntent);
+
+
+            Log.i("MyService", "Service Stopped.");
+
+
+            Toast toast = Toast.makeText(this,
+                    "Tarefa finalizada com sucesso!",
+                    Toast.LENGTH_SHORT);
+            toast.show();
+
+            stopCounter();
+            alarmManager=null;
+
+            stopSelf();
+        }
     }
 
     @Override
@@ -134,8 +148,10 @@ public class BoundService extends Service implements ServiceNotifier {
         this.obj = obj;
     }
 
-    @Override
-    public void notifyValue(long value) {
+
+
+
+    public void notifyValue(String value) {
         obj.newValue(value);
     }
 

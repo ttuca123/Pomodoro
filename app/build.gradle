@@ -5,7 +5,7 @@ android {
     buildToolsVersion "22.0.1"
 
     defaultConfig {
-        applicationId "br.edu.fa7.pomodoro"
+        applicationId "br.edu.fa7.mPomodoro"
         minSdkVersion 10
         targetSdkVersion 22
         versionCode 1
