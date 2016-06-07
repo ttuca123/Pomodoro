@@ -80,32 +80,35 @@ public class TarefaService extends Service {
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
 
-        timer = new Timer();
-
-        timer.scheduleAtFixedRate(new TimerTask() {
-            public void run() {
-                onTimerTick();
-            }
-        }, 1, 1000L);
-
-        isRunning = true;
-
-        Bundle extras = intent.getExtras();
-
-        Intent it = new Intent("TAREFA_ALARM");
-        it.putExtras(extras);
-
-        mostrarNotificacao(it);
-
-        toast = Toast.makeText(this,
-                MSG_TAREFA_INICIADA +it.getStringExtra("_id"),
-                Toast.LENGTH_SHORT);
-        toast.show();
+        if (intent.getExtras() != null) {
 
 
-        Log.i("MyService", "Received start mId " + startId + ": " + intent);
+            timer = new Timer();
+
+            timer.scheduleAtFixedRate(new TimerTask() {
+                public void run() {
+                    onTimerTick();
+                }
+            }, 1, 1000L);
+
+            isRunning = true;
+
+            Bundle extras = intent.getExtras();
+
+            Intent it = new Intent("TAREFA_ALARM");
+            it.putExtras(extras);
+
+            mostrarNotificacao(it);
+
+            toast = Toast.makeText(this,
+                    MSG_TAREFA_INICIADA + it.getStringExtra("_id"),
+                    Toast.LENGTH_SHORT);
+            toast.show();
 
 
+            Log.i("MyService", "Received start mId " + startId + ": " + intent);
+
+        }
         return Service.START_STICKY;
     }
 
@@ -198,5 +201,9 @@ public class TarefaService extends Service {
 
     }
 
+
+    public void closeService(){
+        stopSelf();
+    }
 
 }

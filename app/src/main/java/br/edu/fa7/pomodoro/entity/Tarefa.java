@@ -6,6 +6,10 @@ package br.edu.fa7.pomodoro.entity;
 public class Tarefa {
 
 
+    public void setId(int id) {
+        this.id = id;
+    }
+
     private int id;
 
     private Integer pomodoro;

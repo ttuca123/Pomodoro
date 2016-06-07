@@ -5,7 +5,6 @@ import android.content.ContentValues;
 import android.content.Intent;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
-import android.sax.StartElementListener;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
@@ -13,47 +12,62 @@ import android.widget.Toast;
 
 import br.edu.fa7.pomodoro.EnuStatus;
 import br.edu.fa7.pomodoro.R;
-import br.edu.fa7.pomodoro.activity.MainActivity;
 import br.edu.fa7.pomodoro.connection.DataBaseHelper;
+import br.edu.fa7.pomodoro.dao.TarefaDAO;
 import br.edu.fa7.pomodoro.entity.Tarefa;
 
 public class TarefaActivity extends Activity implements View.OnClickListener {
 
     Button btnSalvar;
-    TextView titulo;
-    TextView descricao;
-    TextView nrPomodoro;
+    TextView mTitulo;
+    TextView mDescricao;
+    TextView mPomodoro;
     private DataBaseHelper helper;
 
-    private static final String TITULO_REQUIRED = "Favor preencher titulo da tarefa";
+    private static final String TITULO_REQUIRED = "Favor preencher mTitulo da tarefa";
     private static final String SUBTITULO_REQUIRED = "Favor preencher descrição da tarefa";
     private static final String POMODORO_REQUIRED = "Favor preencher número de pomodoros da tarefa";
     private static final String REG_SALVO = "Registro Salvo";
+    private static final String REG_ATUALIZADO = "Registro Atualizado";
     private static final String ERRO_SALVAR = "Ocorreu um erro ao salvar no banco";
+    private Tarefa tarefa;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_tarefa);
+
         btnSalvar = (Button) findViewById(R.id.btnTask);
         btnSalvar.setOnClickListener(this);
-        titulo = (TextView) findViewById(R.id.titulo);
-        descricao = (TextView) findViewById(R.id.descricao);
-        nrPomodoro = (TextView) findViewById(R.id.nrPomodoro);
+        mTitulo = (TextView) findViewById(R.id.titulo);
+        mDescricao = (TextView) findViewById(R.id.descricao);
+        mPomodoro = (TextView) findViewById(R.id.nrPomodoro);
         helper = new DataBaseHelper(this);
+
         preencherDados();
-
-
     }
+
 
     private void preencherDados() {
 
-        if (getIntent().getStringExtra("_id") != null) {
+        Bundle bundle = getIntent().getExtras();
 
 
-            titulo.setText(""+getIntent().getStringExtra("_id"));
-            descricao.setText("");
-            nrPomodoro.setText("");
+        if (bundle != null) {
+            String id = bundle.getString("_id");
+
+            String titulo = bundle.getString("mTitulo");
+            String descricao = bundle.getString("mDescricao");
+            String pomodoro = bundle.getString("mPomodoro");
+
+
+            tarefa = new Tarefa();
+            tarefa.setId(Integer.parseInt(id));
+
+
+            this.mTitulo.setText(titulo);
+            this.mDescricao.setText(descricao);
+            mPomodoro.setText(pomodoro);
         }
 
     }
@@ -62,41 +76,57 @@ public class TarefaActivity extends Activity implements View.OnClickListener {
     public void onClick(View v) {
 
         if (validarCampos()) {
-            Tarefa tarefa = new Tarefa();
-            tarefa.setTitulo(titulo.getText().toString());
-            tarefa.setDescricao(descricao.getText().toString());
-            tarefa.setPomodoro(Integer.parseInt(nrPomodoro.getText().toString()));
-            tarefa.setStatus(EnuStatus.NAO_INICIADO.getId());
 
-            Intent it = new Intent(this, MainActivity.class);
+            if (tarefa == null) {
 
-            setResult(RESULT_OK, it);
+                tarefa = new Tarefa();
+                tarefa.setTitulo(mTitulo.getText().toString());
+                tarefa.setDescricao(mDescricao.getText().toString());
+                tarefa.setPomodoro(Integer.parseInt(mPomodoro.getText().toString()));
+                tarefa.setStatus(EnuStatus.NAO_INICIADO.getId());
 
-            salvarTarefa(tarefa);
+                Intent it = new Intent(this, MainActivity.class);
 
-            finish();
+                setResult(RESULT_OK, it);
+
+                salvarTarefa(tarefa);
+
+
+            }else{
+
+                atualizarTarefa();
+
+              Toast  toast = Toast.makeText(this,
+                        "Alteração com sucesso  " ,
+                        Toast.LENGTH_SHORT);
+                toast.show();
+            }
+
+            Intent it = new Intent(getApplicationContext(), MainActivity.class);
+
+            startActivity(it);
         }
     }
 
     private boolean validarCampos() {
         boolean condicao = true;
 
-        if (titulo.getText().toString().isEmpty()) {
+        if (mTitulo.getText().toString().isEmpty()) {
 
-            titulo.requestFocus();
-            titulo.setError(TITULO_REQUIRED);
+            mTitulo.requestFocus();
+            mTitulo.setError(TITULO_REQUIRED);
             condicao = false;
         }
-        if (descricao.getText().toString().isEmpty()) {
+        if (mDescricao.getText().toString().isEmpty()) {
 
-            descricao.requestFocus();
-            descricao.setError(SUBTITULO_REQUIRED);
+            mDescricao.requestFocus();
+            mDescricao.setError(SUBTITULO_REQUIRED);
             condicao = false;
         }
-        if (nrPomodoro.getText().toString().isEmpty() || nrPomodoro.getText().toString().equals("0")) {
+        if (mPomodoro.getText().toString().isEmpty() || mPomodoro.getText().toString().equals("0")) {
 
-            nrPomodoro.requestFocus();
-            nrPomodoro.setError(POMODORO_REQUIRED);
+            mPomodoro.requestFocus();
+            mPomodoro.setError(POMODORO_REQUIRED);
             condicao = false;
         }
         return condicao;
@@ -127,10 +157,38 @@ public class TarefaActivity extends Activity implements View.OnClickListener {
         }
     }
 
+    public void atualizarTarefa() {
+        long resultado;
+
+        SQLiteDatabase db = helper.getWritableDatabase();
+
+        ContentValues valores = new ContentValues();
+
+        valores.put("mTitulo", mTitulo.getText().toString());
+        valores.put("mDescricao", mDescricao.getText().toString());
+        valores.put("qtd_pomodoro", mPomodoro.getText().toString());
+
+        valores.put("sta_status", EnuStatus.NAO_INICIADO.getId());
+        TarefaDAO tarefaDAO = new TarefaDAO(getBaseContext());
+
+        resultado = tarefaDAO.update(tarefa.getId()+"", valores);
+
+
+        if ((resultado) != -1) {
+            Toast.makeText(this, REG_ATUALIZADO, Toast.LENGTH_SHORT).show();
+        } else {
+
+            Toast.makeText(this, ERRO_SALVAR, Toast.LENGTH_SHORT).show();
+        }
+    }
+
+
+
 
     @Override
     protected void onDestroy() {
-        helper.close();
         super.onDestroy();
+        helper.close();
+
     }
 }

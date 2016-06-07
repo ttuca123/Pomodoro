@@ -33,10 +33,10 @@ import java.util.Timer;
 
 import br.edu.fa7.pomodoro.EnuStatus;
 import br.edu.fa7.pomodoro.R;
-import br.edu.fa7.pomodoro.connection.DataBaseHelper;
 import br.edu.fa7.pomodoro.dao.TarefaDAO;
 import br.edu.fa7.pomodoro.entity.Tarefa;
 
+import br.edu.fa7.pomodoro.service.ListenValue;
 import br.edu.fa7.pomodoro.service.TarefaService;
 
 
@@ -44,7 +44,7 @@ import br.edu.fa7.pomodoro.service.TarefaService;
  * Criado por Artur Cavalcante 29/50/2016
  */
 
-public class MainActivity extends Activity implements View.OnClickListener {
+public class MainActivity extends Activity implements View.OnClickListener , ListenValue {
 
 
     private static final short NEW_ACTIVITY_ID = 1;
@@ -54,10 +54,10 @@ public class MainActivity extends Activity implements View.OnClickListener {
     private RecyclerView.LayoutManager mLayoutManager;
     private Button btnTask;
 
-    public TextView cronometro;
+    public TextView mCronometro;
     private Messenger mService = null;
 
-    private Handler handler = new TesteHandler();
+//    private Handler handler = new TesteHandler();
     private boolean mIsBound;
     Intent intent;
     private Timer timer;
@@ -65,29 +65,52 @@ public class MainActivity extends Activity implements View.OnClickListener {
     private TarefaDAO tarefaDAO;
     private List<Tarefa> tarefas;
 
+    TarefaService mTarefaService;
+
+    private Handler mHandler;
+
     private static final String DESCONECTADO = "Disconnected.";
 
-    public class TesteHandler extends Handler {
-
-
-        @Override
-        public void handleMessage(Message msg) {
-            switch (msg.what) {
-
-                case TarefaService.MSG_SET_STRING_VALUE:
-
-                    String str1 = msg.getData().getString("param_cron");
-                    cronometro.setText(str1);
-
-                    break;
-                case TarefaService.MSG_SET_INT_VALUE:
-                    cronometro.setText("Int Message: " + msg.arg1);
-                    break;
-                default:
-                    super.handleMessage(msg);
+    @Override
+    public void newValue(final long value) {
+        mHandler.post(new Runnable() {
+            @Override
+            public void run() {
+                mCronometro.setText(String.valueOf(value));
             }
+        });
+    }
+
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        if(mIsBound){
+            mTarefaService.closeService();
         }
     }
+
+//    public class TesteHandler extends Handler {
+//
+//
+//        @Override
+//        public void handleMessage(Message msg) {
+//            switch (msg.what) {
+//
+//                case TarefaService.MSG_SET_STRING_VALUE:
+//
+//                    String str1 = msg.getData().getString("param_cron");
+//                    mCronometro.setText(str1);
+//
+//                    break;
+//                case TarefaService.MSG_SET_INT_VALUE:
+//                    mCronometro.setText("Int Message: " + msg.arg1);
+//                    break;
+//                default:
+//                    super.handleMessage(msg);
+//            }
+//        }
+//    }
 
     @Override
     protected void onNewIntent(Intent intent) {
@@ -103,34 +126,10 @@ public class MainActivity extends Activity implements View.OnClickListener {
 
         getInstancy();
 
-        restoreMe(savedInstanceState);
-
-        btnTask.setOnClickListener(this);
-
-        intent = new Intent(this, TarefaService.class);
-
-        tarefaDAO = new TarefaDAO(getBaseContext());
-
         readMessage();
 
-        mLayoutManager = new LinearLayoutManager(this);
-
-
-        mAdapter = new MyAdapter(this);
-        recyclerView.setAdapter(mAdapter);
-
-        mLayoutManager = new LinearLayoutManager(this);
-        recyclerView.setLayoutManager(mLayoutManager);
-
-
-    }
-
-
-    private void restoreMe(Bundle state) {
-        if (state != null) {
-
-            cronometro.setText("25:00");
-        }
+        refreshView();
+        mHandler = new Handler();
     }
 
 
@@ -139,7 +138,13 @@ public class MainActivity extends Activity implements View.OnClickListener {
 
         btnTask = (Button) findViewById(R.id.btnTask);
 
-        cronometro = (TextView) findViewById(R.id.cronometro);
+        mCronometro = (TextView) findViewById(R.id.cronometro);
+
+        btnTask.setOnClickListener(this);
+
+        intent = new Intent(this, TarefaService.class);
+
+        tarefaDAO = new TarefaDAO(getBaseContext());
 
 
     }
@@ -149,7 +154,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
         super.onSaveInstanceState(outState);
         if (outState == null) {
 
-            outState.putString("textStatus", cronometro.getText().toString());
+            outState.putString("textStatus", mCronometro.getText().toString());
 
         }
 
@@ -210,7 +215,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
 
         } else {
 
-            cronometro.setText(intvaluetosend + "");
+            mCronometro.setText(intvaluetosend + "");
 
 
         }
@@ -227,16 +232,14 @@ public class MainActivity extends Activity implements View.OnClickListener {
 
 
             try {
+
+
+                TarefaService.LocalBinder binder = (TarefaService.LocalBinder) service;
+                mTarefaService = binder.getService();
+
                 mIsBound = true;
-                mService = new Messenger(service);
-
-                Message msg = new Message();
-                msg.what = TarefaService.MSG_SET_STRING_VALUE;
 
 
-//                Message msg = Message.obtain(null, TarefaService.MSG_REGISTER_CLIENT);
-//                msg.replyTo = mMessenger;
-//                mService.send(msg);
                 Log.i("MyService", "Cliente Conectado.");
 
             } catch (Exception e) {
@@ -246,7 +249,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
 
         @Override
         public void onServiceDisconnected(ComponentName className) {
-            cronometro.setText(DESCONECTADO);
+            mCronometro.setText(DESCONECTADO);
             try {
                 Message msg = Message.obtain(null, TarefaService.MSG_UNREGISTER_CLIENT);
                 msg.replyTo = mService;
@@ -285,7 +288,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
 
             unbindService(mConnection);
             mIsBound = false;
-            cronometro.setText("25:01");
+            mCronometro.setText("25:01");
         }
     }
 
@@ -332,8 +335,13 @@ public class MainActivity extends Activity implements View.OnClickListener {
             for (Tarefa tarefa : tarefaDAO.getTarefas()) {
                 if (tarefa.getId() == Integer.parseInt(id)) {
                     int status = EnuStatus.CONCLUIDO.getId();
+
+                    ContentValues values = new ContentValues();
+                    values.put("qtd_pomodoro", tarefa.getPomodoro() - 1);
+                    values.put("sta_status", status);
+
                     if (tarefa.getPomodoro() > 1) {
-                        tarefaDAO.update(id, tarefa.getPomodoro() - 1, status);
+                        tarefaDAO.update(id, values);
 
                         Toast.makeText(getApplicationContext(), msgs.toString(), Toast.LENGTH_LONG).show();
 
@@ -351,6 +359,17 @@ public class MainActivity extends Activity implements View.OnClickListener {
 
 
         }
+
+    }
+
+
+    public void refreshView() {
+
+        mAdapter = new MyAdapter(MainActivity.this);
+        recyclerView.setAdapter(mAdapter);
+
+        mLayoutManager = new LinearLayoutManager(MainActivity.this);
+        recyclerView.setLayoutManager(mLayoutManager);
 
     }
 
@@ -397,7 +416,11 @@ public class MainActivity extends Activity implements View.OnClickListener {
 
             Toast toast;
 
-            long resultado = tarefaDAO.update(id, status);
+            ContentValues values = new ContentValues();
+
+            values.put("sta_status", status);
+
+            long resultado = tarefaDAO.update(id, values);
 
 
             if (resultado != -1) {
@@ -421,7 +444,11 @@ public class MainActivity extends Activity implements View.OnClickListener {
 
             Toast toast;
 
-            long resultado = tarefaDAO.update(id, (nrPomodoro - 1), status);
+            ContentValues values = new ContentValues();
+            values.put("qtd_pomodoro", nrPomodoro - 1);
+            values.put("sta_status", status);
+
+            long resultado = tarefaDAO.update(id, values);
 
 
             if (resultado != -1) {
@@ -461,17 +488,6 @@ public class MainActivity extends Activity implements View.OnClickListener {
         }
 
 
-        private void refreshView() {
-
-            mAdapter = new MyAdapter(MainActivity.this);
-            recyclerView.setAdapter(mAdapter);
-
-            mLayoutManager = new LinearLayoutManager(MainActivity.this);
-            recyclerView.setLayoutManager(mLayoutManager);
-
-        }
-
-
         @Override
         public void onBindViewHolder(MyViewHolder holder, int position) {
             Tarefa tarefa = tarefas.get(position);
@@ -486,7 +502,7 @@ public class MainActivity extends Activity implements View.OnClickListener {
                 case 0:
                     holder.itemView.setBackgroundColor(Color.GRAY);
                     holder.btnStart.setEnabled(Boolean.TRUE);
-                    holder.btnStop.setEnabled(Boolean.TRUE);
+                    holder.btnStop.setEnabled(Boolean.FALSE);
                     break;
                 case 1:
                     holder.itemView.setBackgroundColor(Color.RED);
@@ -539,14 +555,53 @@ public class MainActivity extends Activity implements View.OnClickListener {
                 mId = (TextView) itemView.findViewById(R.id._id);
 
 
-                this.alertDialog = criaAlertDialog(itemView.getContext(), mId.getText().toString());
+                final CharSequence[] items = {
+                        "Editar",
+                        "Remover"};
+
+
+                //this.alertDialog = criaAlertDialog(itemView.getContext(), mId.getText().toString());
 
                 imageView.setOnLongClickListener(new View.OnLongClickListener() {
                     @Override
                     public boolean onLongClick(View view) {
 
 
-                        alertDialog.show();
+                        AlertDialog.Builder builder = new AlertDialog.Builder(contexto).setTitle("Opções");
+                        builder.setItems(items, new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialogInterface, int i) {
+
+                                switch (i) {
+
+                                    case 0:
+                                        Bundle bundle = new Bundle();
+                                        bundle.putString("_id", mId.getText().toString());
+                                        bundle.putString("mTitulo", titulo.getText().toString());
+
+                                        bundle.putString("mDescricao", descricao.getText().toString());
+
+                                        bundle.putString("mPomodoro", pomodoro.getText().toString());
+
+                                        Intent it = new Intent(getBaseContext(), TarefaActivity.class);
+
+                                        it.putExtras(bundle);
+
+                                        startActivity(it);
+
+                                        break;
+                                    case 1:
+
+                                        remover(mId.getText().toString());
+
+                                        break;
+
+
+                                }
+
+
+                            }
+                        }).show();
                         return true;
                     }
                 });
@@ -599,35 +654,6 @@ public class MainActivity extends Activity implements View.OnClickListener {
             }
 
 
-            private AlertDialog criaAlertDialog(Context contexto, final String id) {
-                String editar = String.valueOf(R.string.editar);
-                String remover = String.valueOf(R.string.remover);
-
-                final CharSequence[] items = {
-                        editar,
-                        remover};
-
-
-                AlertDialog.Builder builder;
-
-                builder = new AlertDialog.Builder(contexto).setTitle("OPÇÕES");
-                builder.setCancelable(true).setPositiveButton("EDITAR", new DialogInterface.OnClickListener() {
-                    @Override
-                    public void onClick(DialogInterface dialogInterface, int i) {
-                        Bundle bundle = new Bundle();
-                        bundle.putString("_id", id);
-
-                        Intent it = new Intent(getApplicationContext(), TarefaActivity.class);
-
-                        it.putExtras(bundle);
-                        
-                        startActivityForResult(it, NEW_ACTIVITY_ID);
-
-
-                    }
-                });
-                return builder.create();
-            }
         }
     }
 

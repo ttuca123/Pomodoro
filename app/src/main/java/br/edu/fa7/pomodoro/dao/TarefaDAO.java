@@ -17,10 +17,10 @@ import br.edu.fa7.pomodoro.entity.Tarefa;
  */
 public class TarefaDAO {
 
-    DataBaseHelper helper;
-    TarefaDAO tarefaDAO;
-    Context contexto;
+    private DataBaseHelper helper;
 
+    private Context contexto;
+    private static final String TABELA = "tarefa";
 
     public TarefaDAO(Context contexto) {
         this.contexto = contexto;
@@ -29,36 +29,13 @@ public class TarefaDAO {
     }
 
 
-    public static final String TABELA = "tarefa";
+    public long update(String id, ContentValues values) {
 
-    public long update(String id, int nrPomodoro, int status) {
-
-        Toast toast;
-
-        ContentValues values = new ContentValues();
-        values.put("qtd_pomodoro", nrPomodoro);
-        values.put("sta_status", status);
 
         return helper.update(TABELA, id, values);
 
 
     }
-
-    public long update(String id,  int status) {
-
-
-        Toast toast;
-
-        ContentValues values = new ContentValues();
-
-        values.put("sta_status", status);
-
-        return helper.update(TABELA, id, values);
-
-
-    }
-
-
 
 
     public List<Tarefa> getTarefas() {
@@ -73,7 +50,7 @@ public class TarefaDAO {
         long resultado;
         SQLiteDatabase db = helper.getWritableDatabase();
         String where[] = new String[]{id};
-        resultado = db.delete("tarefa", "_id=?", where);
+        resultado = db.delete(TABELA, "_id=?", where);
         Toast toast;
         return resultado;
 
