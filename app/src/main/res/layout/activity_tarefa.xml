@@ -26,6 +26,7 @@
                 android:maxLines="1"
         android:layout_gravity="bottom"
                 android:singleLine="true"
+        android:textColor="?attr/colorAccent"
         />
 
     </TableRow>
@@ -41,7 +42,8 @@
                 android:inputType="text"
                 android:maxLines="1"
                 android:singleLine="true"
-                android:layout_gravity="bottom" />
+                android:layout_gravity="bottom"
+                android:textColor="?attr/colorAccent"/>
 
         </TableRow>
         <TableRow>
@@ -54,17 +56,28 @@
                         android:id="@+id/nrPomodoro"
                         android:hint="@string/nr_pomodoro"
                 android:layout_gravity="bottom"
+                android:textColor="?attr/colorAccent"
                          />
         </TableRow>
-        <TableRow><Button
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="@string/btn_salvar"
-            android:id="@+id/btnTask"
-            android:background="?attr/selectableItemBackground"
-            />
-            </TableRow>
+
+
 </TableLayout>
+    <Button
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/btn_salvar"
+        android:id="@+id/btnTask"
+
+        android:textColor="#ffffff"
+        android:background="@drawable/mybutton"
+        android:elevation="24dp"
+
+        android:height="36dp"
+        android:layout_marginTop="24dp"
+        android:minWidth="64dp"
+
+
+        />
 
 
 
