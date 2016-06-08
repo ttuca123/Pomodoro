@@ -170,15 +170,6 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
 
 
     @Override
-    protected void onStop() {
-        super.onStop();
-        if (mIsBound) {
-            unbindService(mConnection);
-        }
-    }
-
-
-    @Override
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
         switch (requestCode) {
@@ -215,19 +206,17 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
         public void onServiceConnected(ComponentName className, IBinder service) {
 
 
-            try {
 
-                BoundService.LocalBinder binder = (BoundService.LocalBinder) service;
 
-                mBoundService = binder.getService();
-                mBoundService.add(MainActivity.this);
-                mIsBound = true;
+                    BoundService.LocalBinder binder = (BoundService.LocalBinder) service;
 
-                Log.i("MyService", "Cliente Conectado.");
+                    mBoundService = binder.getService();
+                    mBoundService.add(MainActivity.this);
+                    mIsBound = true;
 
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+                    Log.i("MyService", "Cliente Conectado.");
+
+
         }
 
         @Override
@@ -239,10 +228,11 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     };
 
     private void doBindService() {
-        if (!mIsBound) {
+
+
             bindService(mBoundServiceIntent, mConnection, Context.BIND_AUTO_CREATE);
             mIsBound = Boolean.TRUE;
-        }
+
 
     }
 
