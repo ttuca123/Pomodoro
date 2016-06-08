@@ -13,6 +13,7 @@ import android.os.Handler;
 import android.os.IBinder;
 import android.os.Bundle;
 import android.support.v7.app.AlertDialog;
+import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -40,7 +41,7 @@ import br.edu.fa7.pomodoro.service.ListenValue;
  * Criado por Artur Cavalcante 29/50/2016
  */
 
-public class MainActivity extends Activity implements View.OnClickListener, ListenValue {
+public class MainActivity extends AppCompatActivity implements View.OnClickListener, ListenValue {
 
 
     private static final short NEW_ACTIVITY_ID = 1;
@@ -381,19 +382,19 @@ public class MainActivity extends Activity implements View.OnClickListener, List
             switch (tarefa.getStatus()) {
 
                 case 0:
-
-
+                    holder.mImageView.setImageResource(R.drawable.abc_btn_borderless_material);
                     holder.mBtnStart.setEnabled(Boolean.TRUE);
                     holder.mBtnStop.setEnabled(Boolean.FALSE);
                     break;
                 case 1:
+                    holder.mImageView.setImageResource(R.drawable.abc_btn_check_material);
 
                     holder.mBtnStart.setEnabled(Boolean.FALSE);
                     holder.mBtnStop.setEnabled(Boolean.TRUE);
                     break;
                 case 2:
 
-
+                    holder.mImageView.setImageResource(R.drawable.abc_btn_check_to_on_mtrl_015);
                     holder.mBtnStop.setEnabled(Boolean.FALSE);
                     holder.mBtnStart.setEnabled(Boolean.TRUE);
                     break;
