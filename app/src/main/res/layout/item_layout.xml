@@ -97,7 +97,7 @@
             android:layout_alignStart="@+id/stop"
             android:layout_alignRight="@+id/stop"
             android:layout_alignEnd="@+id/stop"
-            android:textColor="#ffffff"
+            android:textColor="#bbdefb"
             android:background="@drawable/mybutton"
             android:elevation="20dp"
             />
@@ -112,7 +112,7 @@
 
             android:layout_alignParentRight="true"
             android:layout_alignParentEnd="true"
-            android:textColor="#ffffff"
+            android:textColor="#bbdefb"
             android:background="@drawable/mybutton"
             android:elevation="20dp"
             android:layout_below="@+id/descricao" />
