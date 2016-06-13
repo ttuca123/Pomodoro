@@ -23,7 +23,7 @@ import java.util.TimerTask;
 
 public class BoundService extends Service implements ServiceNotifier {
 
-    private int counter = 5;
+    private int counter = 1500;
     private ListenValue obj;
     private IBinder binder;
     private boolean stop;
@@ -104,7 +104,7 @@ public class BoundService extends Service implements ServiceNotifier {
                         } while (!stop);
                         stop = false;
                         isCountStarted = false;
-                        counter = 5;
+                        counter = 1500;
                     }
 
                 };

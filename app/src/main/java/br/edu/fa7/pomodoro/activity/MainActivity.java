@@ -59,7 +59,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     private List<Tarefa> tarefas;
     private Handler mHandler;
     private static final String POMODORO = "25:00";
-
+    public int idTarefa;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -237,7 +237,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     }
 
     private void doUnbindService() {
-        if (mIsBound) {
+        if (!mIsBound) {
             mBoundService.closeService();
 
             mCronometro.setText(POMODORO);
@@ -249,10 +249,10 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        if (!mIsBound) {
+
 
             doUnbindService();
-        }
+
     }
 
 
@@ -372,19 +372,19 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
             switch (tarefa.getStatus()) {
 
                 case 0:
-                    holder.mImageView.setImageResource(R.drawable.abc_btn_borderless_material);
+                    holder.mImageView.setImageResource(R.mipmap.ic_alarm_off_black_24dp);
                     holder.mBtnStart.setEnabled(Boolean.TRUE);
                     holder.mBtnStop.setEnabled(Boolean.FALSE);
                     break;
                 case 1:
-                    holder.mImageView.setImageResource(R.drawable.abc_btn_check_material);
+                    holder.mImageView.setImageResource(R.mipmap.ic_alarm_on_black_24dp);
 
                     holder.mBtnStart.setEnabled(Boolean.FALSE);
                     holder.mBtnStop.setEnabled(Boolean.TRUE);
                     break;
                 case 2:
 
-                    holder.mImageView.setImageResource(R.drawable.abc_btn_check_to_on_mtrl_015);
+                    holder.mImageView.setImageResource(R.mipmap.ic_check_circle_black_24dp);
                     holder.mBtnStop.setEnabled(Boolean.FALSE);
                     holder.mBtnStart.setEnabled(Boolean.TRUE);
                     break;

@@ -46,9 +46,9 @@ public class MyBroadcastReceiver extends BroadcastReceiver {
 
         if(action.equals(ALARM_NOTIFICACAO))
         {
-            Uri alarmSound = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_NOTIFICATION);
+            Uri alarmSound = RingtoneManager.getDefaultUri(RingtoneManager.TYPE_ALARM);
 
-            NotificationCompat.Builder builder = new NotificationCompat.Builder(context).setSmallIcon(R.drawable.notification_template_icon_bg)
+            NotificationCompat.Builder builder = new NotificationCompat.Builder(context).setSmallIcon(R.mipmap.ic_check_circle_black_24dp)
                     .setContentTitle(TITLE_NOTIFICACAO).setContentText(descNotificacao.toString())
                     .setAutoCancel(true).setTicker("Nova Mensagem!").setSound(alarmSound);
 
