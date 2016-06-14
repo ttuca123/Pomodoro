@@ -5,7 +5,9 @@ import android.content.ContentValues;
 import android.content.Intent;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
+import android.support.v7.app.ActionBar;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.Toolbar;
 import android.view.View;
 import android.widget.Button;
 import android.widget.TextView;
@@ -16,6 +18,12 @@ import br.edu.fa7.pomodoro.R;
 import br.edu.fa7.pomodoro.connection.DataBaseHelper;
 import br.edu.fa7.pomodoro.dao.TarefaDAO;
 import br.edu.fa7.pomodoro.entity.Tarefa;
+
+
+/**
+ * Criado por Artur Cavalcante 07/06/2016
+ */
+
 
 public class TarefaActivity extends AppCompatActivity implements View.OnClickListener {
 
@@ -46,7 +54,10 @@ public class TarefaActivity extends AppCompatActivity implements View.OnClickLis
         helper = new DataBaseHelper(this);
 
         preencherDados();
+
+
     }
+
 
 
     private void preencherDados() {

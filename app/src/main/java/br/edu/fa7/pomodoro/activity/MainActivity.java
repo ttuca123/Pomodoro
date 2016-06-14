@@ -514,6 +514,7 @@ public class MainActivity extends AppCompatActivity implements View.OnClickListe
                             update(id, nrPomodoro, EnuStatus.CONCLUIDO.getId());
 
                         }
+                        mCronometro.setText(POMODORO);
 
                         break;
 
